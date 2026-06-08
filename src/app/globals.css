@@ -7,7 +7,7 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
+  --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -49,72 +49,72 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  --background: oklch(0.985 0.006 247);
+  --foreground: oklch(0.21 0.032 252);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: oklch(0.21 0.032 252);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.21 0.032 252);
+  --primary: oklch(0.546 0.215 262.88);
+  --primary-foreground: oklch(0.985 0.006 247);
+  --secondary: oklch(0.94 0.014 250);
+  --secondary-foreground: oklch(0.24 0.034 252);
+  --muted: oklch(0.94 0.014 250);
+  --muted-foreground: oklch(0.48 0.038 252);
+  --accent: oklch(0.94 0.014 250);
+  --accent-foreground: oklch(0.24 0.034 252);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --border: oklch(0.86 0.018 250);
+  --input: oklch(0.86 0.018 250);
+  --ring: oklch(0.546 0.215 262.88);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar: oklch(0.975 0.006 247);
+  --sidebar-foreground: oklch(0.21 0.032 252);
+  --sidebar-primary: oklch(0.546 0.215 262.88);
+  --sidebar-primary-foreground: oklch(0.985 0.006 247);
+  --sidebar-accent: oklch(0.94 0.014 250);
+  --sidebar-accent-foreground: oklch(0.24 0.034 252);
+  --sidebar-border: oklch(0.86 0.018 250);
+  --sidebar-ring: oklch(0.546 0.215 262.88);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
+  --background: oklch(0.16 0.018 248);
+  --foreground: oklch(0.97 0.012 248);
+  --card: oklch(0.2 0.02 248);
+  --card-foreground: oklch(0.97 0.012 248);
+  --popover: oklch(0.2 0.02 248);
+  --popover-foreground: oklch(0.97 0.012 248);
+  --primary: oklch(0.623 0.214 259.81);
+  --primary-foreground: oklch(0.985 0.006 247);
+  --secondary: oklch(0.24 0.02 248);
+  --secondary-foreground: oklch(0.93 0.012 248);
+  --muted: oklch(0.24 0.02 248);
+  --muted-foreground: oklch(0.68 0.02 248);
+  --accent: oklch(0.24 0.02 248);
+  --accent-foreground: oklch(0.93 0.012 248);
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  --ring: oklch(0.623 0.214 259.81);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar: oklch(0.16 0.018 248);
+  --sidebar-foreground: oklch(0.93 0.012 248);
+  --sidebar-primary: oklch(0.623 0.214 259.81);
+  --sidebar-primary-foreground: oklch(0.985 0.006 247);
+  --sidebar-accent: oklch(0.24 0.02 248);
+  --sidebar-accent-foreground: oklch(0.93 0.012 248);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --sidebar-ring: oklch(0.623 0.214 259.81);
 }
 
 @layer base {
@@ -126,5 +126,351 @@
   }
   html {
     @apply font-sans;
+  }
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  [role="option"]:not([aria-disabled="true"]),
+  [role="menuitem"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+  button:disabled,
+  [role="button"][aria-disabled="true"],
+  [role="option"][aria-disabled="true"],
+  [role="menuitem"][aria-disabled="true"] {
+    cursor: not-allowed;
+  }
+}
+
+@layer utilities {
+  .admin-app-bg {
+    background:
+      linear-gradient(180deg, rgb(248 250 252 / 0.98), rgb(232 238 247 / 1)),
+      repeating-linear-gradient(
+        90deg,
+        rgb(15 23 42 / 0.045) 0,
+        rgb(15 23 42 / 0.045) 1px,
+        transparent 1px,
+        transparent 72px
+      );
+  }
+
+  .dark .admin-app-bg {
+    background:
+      linear-gradient(180deg, rgb(11 18 29 / 0.98), rgb(6 11 18 / 1)),
+      repeating-linear-gradient(
+        90deg,
+        rgb(255 255 255 / 0.035) 0,
+        rgb(255 255 255 / 0.035) 1px,
+        transparent 1px,
+        transparent 72px
+      );
+  }
+
+  .admin-sidebar {
+    background: rgb(248 250 252 / 0.96);
+    backdrop-filter: blur(16px) saturate(120%);
+    box-shadow: inset -1px 0 0 rgb(15 23 42 / 0.04);
+  }
+
+  .dark .admin-sidebar {
+    background: rgb(7 13 21 / 0.98);
+    box-shadow: inset -1px 0 0 rgb(255 255 255 / 0.03);
+  }
+
+  .admin-sidebar-toggle {
+    --admin-sidebar-toggle-y: 50%;
+    position: absolute;
+    inset-block: 0;
+    right: -12px;
+    z-index: 30;
+    width: 24px;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    background: transparent;
+    color: rgb(51 65 85);
+    outline: none;
+  }
+
+  .admin-sidebar-toggle::before {
+    content: "";
+    position: absolute;
+    inset-block: 0;
+    left: 50%;
+    width: 1px;
+    transform: translateX(-50%);
+    background: rgb(37 99 235 / 0);
+    transition: background-color 150ms ease;
+  }
+
+  .admin-sidebar-toggle-handle {
+    display: flex;
+    width: 18px;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgb(15 23 42 / 0.14);
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.92);
+    box-shadow: 0 12px 28px rgb(15 23 42 / 0.14);
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      top 80ms ease-out,
+      width 150ms ease,
+      opacity 150ms ease,
+      background-color 150ms ease,
+      border-color 150ms ease,
+      box-shadow 150ms ease;
+  }
+
+  .admin-sidebar-toggle:hover::before,
+  .admin-sidebar-toggle:focus-visible::before {
+    background: rgb(37 99 235 / 0.2);
+  }
+
+  .admin-sidebar-toggle:hover .admin-sidebar-toggle-handle,
+  .admin-sidebar-toggle:focus-visible .admin-sidebar-toggle-handle {
+    width: 20px;
+    border-color: rgb(37 99 235 / 0.28);
+    background: rgb(255 255 255 / 0.98);
+    box-shadow: 0 16px 34px rgb(37 99 235 / 0.18);
+    opacity: 1;
+  }
+
+  .admin-sidebar-toggle:focus-visible .admin-sidebar-toggle-handle {
+    box-shadow:
+      0 0 0 3px rgb(37 99 235 / 0.18),
+      0 16px 34px rgb(37 99 235 / 0.18);
+  }
+
+  .dark .admin-sidebar-toggle {
+    color: rgb(203 213 225);
+  }
+
+  .dark .admin-sidebar-toggle-handle {
+    border-color: rgb(148 163 184 / 0.18);
+    background: rgb(30 41 59 / 0.9);
+    box-shadow: 0 14px 32px rgb(0 0 0 / 0.36);
+  }
+
+  .dark .admin-sidebar-toggle:hover .admin-sidebar-toggle-handle,
+  .dark .admin-sidebar-toggle:focus-visible .admin-sidebar-toggle-handle {
+    border-color: rgb(96 165 250 / 0.34);
+    background: rgb(51 65 85 / 0.96);
+    box-shadow: 0 16px 36px rgb(37 99 235 / 0.24);
+  }
+
+  .admin-panel {
+    @apply rounded-xl;
+    border: 1px solid rgb(15 23 42 / 0.12);
+    background: rgb(255 255 255 / 0.94);
+    backdrop-filter: blur(14px) saturate(118%);
+    box-shadow: 0 18px 48px rgb(15 23 42 / 0.1);
+  }
+
+  .dark .admin-panel {
+    border-color: rgb(148 163 184 / 0.18);
+    background: rgb(15 23 42 / 0.88);
+    box-shadow: 0 20px 60px rgb(0 0 0 / 0.32);
+  }
+
+  .admin-field {
+    border-color: rgb(15 23 42 / 0.12) !important;
+    background: rgb(255 255 255 / 0.96) !important;
+    color: rgb(15 23 42) !important;
+  }
+
+  .admin-field::placeholder {
+    color: rgb(100 116 139) !important;
+  }
+
+  .admin-field:focus,
+  .admin-field:focus-visible {
+    border-color: rgb(37 99 235 / 0.7) !important;
+    box-shadow: 0 0 0 3px rgb(37 99 235 / 0.16) !important;
+  }
+
+  .dark .admin-field {
+    border-color: rgb(148 163 184 / 0.16) !important;
+    background: rgb(15 23 42 / 0.72) !important;
+    color: rgb(241 245 249) !important;
+  }
+
+  .dark .admin-field::placeholder {
+    color: rgb(148 163 184) !important;
+  }
+
+  .admin-primary-button {
+    background: rgb(37 99 235) !important;
+    color: rgb(255 255 255) !important;
+    box-shadow: 0 10px 28px rgb(37 99 235 / 0.22);
+  }
+
+  .admin-primary-button:hover {
+    background: rgb(29 78 216) !important;
+  }
+
+  .dark .admin-primary-button {
+    background: rgb(59 130 246) !important;
+    color: rgb(255 255 255) !important;
+    box-shadow: 0 10px 28px rgb(37 99 235 / 0.28);
+  }
+
+  .dark .admin-primary-button:hover {
+    background: rgb(96 165 250) !important;
+  }
+
+  .admin-secondary-button {
+    border: 1px solid rgb(15 23 42 / 0.12) !important;
+    background: rgb(255 255 255 / 0.9) !important;
+    color: rgb(51 65 85) !important;
+  }
+
+  .admin-secondary-button:hover {
+    background: rgb(241 245 249) !important;
+    color: rgb(15 23 42) !important;
+  }
+
+  .dark .admin-secondary-button {
+    border-color: rgb(148 163 184 / 0.16) !important;
+    background: rgb(30 41 59 / 0.78) !important;
+    color: rgb(203 213 225) !important;
+  }
+
+  .dark .admin-secondary-button:hover {
+    background: rgb(51 65 85 / 0.88) !important;
+    color: rgb(248 250 252) !important;
+  }
+
+  .admin-select-content {
+    border: 1px solid rgb(15 23 42 / 0.12) !important;
+    background: rgb(255 255 255 / 0.98) !important;
+    color: rgb(15 23 42) !important;
+  }
+
+  .dark .admin-select-content {
+    border-color: rgb(148 163 184 / 0.16) !important;
+    background: rgb(15 23 42 / 0.98) !important;
+    color: rgb(241 245 249) !important;
+  }
+
+  html:not(.dark) .admin-app-bg .text-slate-50,
+  html:not(.dark) .admin-app-bg .text-slate-100,
+  html:not(.dark) .admin-app-bg .text-slate-200,
+  html:not(.dark) .admin-panel.text-slate-50,
+  html:not(.dark) .admin-panel.text-slate-100,
+  html:not(.dark) .admin-panel.text-slate-200,
+  html:not(.dark) .admin-panel .text-slate-50,
+  html:not(.dark) .admin-panel .text-slate-100,
+  html:not(.dark) .admin-panel .text-slate-200 {
+    color: rgb(15 23 42) !important;
+  }
+
+  html:not(.dark) .admin-app-bg .text-slate-300,
+  html:not(.dark) .admin-panel.text-slate-300,
+  html:not(.dark) .admin-panel .text-slate-300 {
+    color: rgb(51 65 85) !important;
+  }
+
+  html:not(.dark) .admin-app-bg .text-slate-400,
+  html:not(.dark) .admin-app-bg .text-slate-500,
+  html:not(.dark) .admin-panel.text-slate-400,
+  html:not(.dark) .admin-panel.text-slate-500,
+  html:not(.dark) .admin-panel .text-slate-400,
+  html:not(.dark) .admin-panel .text-slate-500 {
+    color: rgb(71 85 105) !important;
+  }
+
+  html:not(.dark) .admin-app-bg .text-slate-600,
+  html:not(.dark) .admin-panel.text-slate-600,
+  html:not(.dark) .admin-panel .text-slate-600 {
+    color: rgb(51 65 85) !important;
+  }
+
+  html:not(.dark) .admin-app-bg .text-blue-100,
+  html:not(.dark) .admin-app-bg .text-blue-200,
+  html:not(.dark) .admin-app-bg .text-blue-300,
+  html:not(.dark) .admin-app-bg .text-blue-400,
+  html:not(.dark) .admin-app-bg .text-blue-500 {
+    color: rgb(37 99 235) !important;
+  }
+
+  html:not(.dark) .admin-app-bg .text-blue-700\/70 {
+    color: rgb(29 78 216) !important;
+  }
+
+  html:not(.dark) .admin-app-bg .text-green-400 {
+    color: rgb(22 101 52) !important;
+  }
+
+  html:not(.dark) .admin-app-bg .text-emerald-400 {
+    color: rgb(4 120 87) !important;
+  }
+
+  html:not(.dark) .admin-app-bg .text-red-300,
+  html:not(.dark) .admin-app-bg .text-red-400 {
+    color: rgb(185 28 28) !important;
+  }
+
+  html:not(.dark) .admin-app-bg .text-yellow-400,
+  html:not(.dark) .admin-app-bg .text-orange-400 {
+    color: rgb(180 83 9) !important;
+  }
+
+  html:not(.dark) .admin-app-bg .text-violet-400 {
+    color: rgb(109 40 217) !important;
+  }
+
+  html:not(.dark) .admin-app-bg .hover\:text-slate-200:hover,
+  html:not(.dark) .admin-app-bg .hover\:text-slate-300:hover,
+  html:not(.dark) .admin-app-bg .hover\:text-slate-400:hover {
+    color: rgb(15 23 42) !important;
+  }
+
+  html:not(.dark) .admin-app-bg .group:hover .group-hover\:text-slate-500 {
+    color: rgb(51 65 85) !important;
+  }
+
+  html:not(.dark) .admin-app-bg .hover\:text-blue-100:hover,
+  html:not(.dark) .admin-app-bg .hover\:text-blue-400:hover,
+  html:not(.dark) .admin-app-bg .hover\:text-blue-500:hover {
+    color: rgb(29 78 216) !important;
+  }
+
+  html:not(.dark) .admin-app-bg .hover\:text-red-300:hover,
+  html:not(.dark) .admin-app-bg .hover\:text-red-400:hover {
+    color: rgb(185 28 28) !important;
+  }
+
+  html:not(.dark) .admin-app-bg .hover\:text-yellow-400:hover,
+  html:not(.dark) .admin-app-bg .hover\:text-orange-400:hover {
+    color: rgb(180 83 9) !important;
+  }
+
+  html:not(.dark) .admin-app-bg [class*="border-white/"] {
+    border-color: rgb(15 23 42 / 0.1) !important;
+  }
+
+  html:not(.dark) .admin-app-bg [class^="bg-white/"],
+  html:not(.dark) .admin-app-bg [class*=" bg-white/"] {
+    background-color: rgb(255 255 255 / 0.86) !important;
+  }
+
+  html:not(.dark) .admin-app-bg .hover\:bg-white\/\[0\.035\]:hover,
+  html:not(.dark) .admin-app-bg .hover\:bg-white\/\[0\.045\]:hover,
+  html:not(.dark) .admin-app-bg .hover\:bg-white\/\[0\.065\]:hover {
+    background-color: rgb(226 232 240 / 0.78) !important;
+  }
+
+  .dark .admin-app-bg [class^="bg-white/"],
+  .dark .admin-app-bg [class*=" bg-white/"] {
+    background-color: rgb(30 41 59 / 0.55) !important;
+  }
+
+  html:not(.dark) .admin-app-bg [class*="bg-slate-800"],
+  html:not(.dark) .admin-app-bg [class*="bg-slate-900"],
+  html:not(.dark) .admin-app-bg [class*="bg-slate-950"] {
+    background-color: rgb(241 245 249 / 0.9) !important;
   }
 }

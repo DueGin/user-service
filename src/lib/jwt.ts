@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import { v4 as uuidv4 } from "uuid";
 
 const JWT_SECRET = process.env.JWT_SECRET || "change-me-in-production";
 const JWT_REFRESH_SECRET =
@@ -11,11 +12,11 @@ export interface JwtPayload {
 }
 
 export function signAccessToken(payload: JwtPayload): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: "15m" });
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: "15m", jwtid: uuidv4() });
 }
 
 export function signRefreshToken(payload: JwtPayload): string {
-  return jwt.sign(payload, JWT_REFRESH_SECRET, { expiresIn: "7d" });
+  return jwt.sign(payload, JWT_REFRESH_SECRET, { expiresIn: "7d", jwtid: uuidv4() });
 }
 
 export function verifyAccessToken(token: string): JwtPayload {

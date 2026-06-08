@@ -24,6 +24,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { AppWindow, Plus, Edit, Ban, RefreshCw, Eye, EyeOff, Copy } from "lucide-react";
 import { adminFetch } from "@/lib/admin-api";
 import { toast } from "sonner";
+import { AdminPageHeader } from "@/components/admin-page-header";
 
 interface Application {
   id: string;
@@ -159,43 +160,39 @@ export default function ApplicationsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-sm">
-            <AppWindow className="w-4 h-4 text-white" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-white tracking-tight">应用管理</h1>
-            <p className="text-slate-400 text-sm mt-0.5">管理接入的第三方应用及其 API 密钥</p>
-          </div>
-        </div>
-        <Button onClick={openCreate} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-sm shadow-blue-500/20">
-          <Plus className="w-4 h-4 mr-2" />
-          创建应用
-        </Button>
-      </div>
+      <AdminPageHeader
+        title="应用管理"
+        description="管理第三方应用、回调地址、允许来源与 API 密钥。"
+        icon={AppWindow}
+        action={
+          <Button onClick={openCreate} className="admin-primary-button">
+            <Plus className="w-4 h-4 mr-2" />
+            创建应用
+          </Button>
+        }
+      />
 
-      <Card className="bg-slate-900/60 border-slate-800/50">
-        <CardContent className="pt-6">
+      <Card className="admin-panel py-0">
+        <CardContent className="p-0">
           <Table>
             <TableHeader>
-              <TableRow className="border-slate-800/50 hover:bg-transparent">
-                <TableHead className="text-slate-500 text-xs font-semibold uppercase tracking-wider">应用名</TableHead>
-                <TableHead className="text-slate-500 text-xs font-semibold uppercase tracking-wider">API Key</TableHead>
-                <TableHead className="text-slate-500 text-xs font-semibold uppercase tracking-wider">API Secret</TableHead>
-                <TableHead className="text-slate-500 text-xs font-semibold uppercase tracking-wider">状态</TableHead>
-                <TableHead className="text-slate-500 text-xs font-semibold uppercase tracking-wider">回调URL</TableHead>
-                <TableHead className="text-slate-500 text-xs font-semibold uppercase tracking-wider">创建时间</TableHead>
-                <TableHead className="text-slate-500 text-xs font-semibold uppercase tracking-wider">操作</TableHead>
+              <TableRow className="border-white/[0.06] hover:bg-transparent">
+                <TableHead className="px-5 text-xs font-medium text-slate-500">应用名</TableHead>
+                <TableHead className="text-xs font-medium text-slate-500">API Key</TableHead>
+                <TableHead className="text-xs font-medium text-slate-500">API Secret</TableHead>
+                <TableHead className="text-xs font-medium text-slate-500">状态</TableHead>
+                <TableHead className="text-xs font-medium text-slate-500">回调 URL</TableHead>
+                <TableHead className="text-xs font-medium text-slate-500">创建时间</TableHead>
+                <TableHead className="pr-5 text-xs font-medium text-slate-500">操作</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 <>
                   {[1,2,3].map(i => (
-                    <TableRow key={i} className="border-slate-800/30">
+                    <TableRow key={i} className="border-white/[0.06]">
                       {[1,2,3,4,5,6,7].map(j => (
-                        <TableCell key={j}><div className="h-4 bg-slate-800/50 rounded animate-pulse" /></TableCell>
+                        <TableCell key={j} className={j === 1 ? "pl-5" : j === 7 ? "pr-5" : ""}><div className="h-4 animate-pulse rounded bg-white/[0.055]" /></TableCell>
                       ))}
                     </TableRow>
                   ))}
@@ -206,8 +203,8 @@ export default function ApplicationsPage() {
                 </TableRow>
               ) : (
                 apps.map((app) => (
-                  <TableRow key={app.id} className="border-slate-800/30 hover:bg-slate-800/20 transition-colors">
-                    <TableCell>
+                  <TableRow key={app.id} className="border-white/[0.06] transition-colors hover:bg-white/[0.035]">
+                    <TableCell className="pl-5">
                       <div>
                         <div className="text-slate-200 font-medium text-sm">{app.name}</div>
                         {app.description && <div className="text-xs text-slate-500 mt-0.5">{app.description}</div>}
@@ -215,7 +212,7 @@ export default function ApplicationsPage() {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
-                        <code className="text-xs text-slate-300 bg-slate-800/60 px-2 py-1 rounded font-mono">
+                        <code className="rounded-md border border-white/10 bg-slate-950/35 px-2 py-1 font-mono text-xs text-slate-300">
                           {app.apiKey.slice(0, 16)}...
                         </code>
                         <Button size="sm" variant="ghost" onClick={() => copyToClipboard(app.apiKey)} className="h-6 w-6 p-0 text-slate-400">
@@ -226,7 +223,7 @@ export default function ApplicationsPage() {
                     <TableCell>
                       {secrets[app.id] ? (
                         <div className="flex items-center gap-1">
-                          <code className="text-xs text-slate-300 bg-slate-800/60 px-2 py-1 rounded font-mono">
+                          <code className="rounded-md border border-white/10 bg-slate-950/35 px-2 py-1 font-mono text-xs text-slate-300">
                             {showSecret[app.id] ? secrets[app.id] : "••••••••••"}
                           </code>
                           <Button size="sm" variant="ghost" onClick={() => setShowSecret((p) => ({ ...p, [app.id]: !p[app.id] }))} className="h-6 w-6 p-0 text-slate-400">
@@ -251,9 +248,9 @@ export default function ApplicationsPage() {
                     <TableCell className="text-slate-400 text-sm tabular-nums">
                       {new Date(app.createdAt).toLocaleString("zh-CN")}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="pr-5">
                       <div className="flex gap-1">
-                        <Button size="sm" variant="ghost" onClick={() => openEdit(app)} className="text-slate-400 hover:text-white" title="编辑">
+                        <Button size="sm" variant="ghost" onClick={() => openEdit(app)} className="text-slate-400 hover:text-blue-500" title="编辑">
                           <Edit className="w-4 h-4" />
                         </Button>
                         <Button size="sm" variant="ghost" onClick={() => handleRegenerateKey(app)} className="text-slate-400 hover:text-yellow-400" title="重新生成密钥">
@@ -275,31 +272,31 @@ export default function ApplicationsPage() {
       </Card>
 
       <Dialog open={showForm} onOpenChange={setShowForm}>
-        <DialogContent className="bg-slate-900 border-slate-800 text-white sm:max-w-md">
+        <DialogContent className="admin-panel text-slate-100 shadow-2xl sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-lg">{editApp ? "编辑应用" : "创建应用"}</DialogTitle>
+            <DialogTitle className="text-lg text-slate-50">{editApp ? "编辑应用" : "创建应用"}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label className="text-slate-300 text-sm">应用名 *</Label>
-              <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="h-10 bg-slate-800/50 border-slate-700 focus:border-blue-500" required />
+              <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="admin-field h-10" required />
             </div>
             <div className="space-y-2">
               <Label className="text-slate-300 text-sm">描述</Label>
-              <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="bg-slate-800/50 border-slate-700 focus:border-blue-500" rows={2} />
+              <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="admin-field" rows={2} />
             </div>
             <div className="space-y-2">
               <Label className="text-slate-300 text-sm">回调 URL</Label>
-              <Input value={form.callbackUrl} onChange={(e) => setForm({ ...form, callbackUrl: e.target.value })} placeholder="https://your-app.com/callback" className="h-10 bg-slate-800/50 border-slate-700 focus:border-blue-500" />
+              <Input value={form.callbackUrl} onChange={(e) => setForm({ ...form, callbackUrl: e.target.value })} placeholder="https://your-app.com/callback" className="admin-field h-10" />
             </div>
             <div className="space-y-2">
               <Label className="text-slate-300 text-sm">允许的 Origins（每行一个）</Label>
               <Textarea value={form.allowedOrigins} onChange={(e) => setForm({ ...form, allowedOrigins: e.target.value })} placeholder="https://your-app.com
-https://staging.your-app.com" className="bg-slate-800/50 border-slate-700 focus:border-blue-500" rows={3} />
+https://staging.your-app.com" className="admin-field" rows={3} />
             </div>
             <div className="flex justify-end gap-2 pt-2">
-              <Button type="button" variant="outline" onClick={() => setShowForm(false)} className="border-slate-700 text-slate-400 hover:text-white">取消</Button>
-              <Button type="submit" className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">{editApp ? "保存" : "创建"}</Button>
+              <Button type="button" variant="outline" onClick={() => setShowForm(false)} className="admin-secondary-button">取消</Button>
+              <Button type="submit" className="admin-primary-button">{editApp ? "保存" : "创建"}</Button>
             </div>
           </form>
         </DialogContent>

@@ -3,8 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { signAccessToken, signRefreshToken } from "@/lib/jwt";
 import { exchangeCodeSchema } from "@/lib/validations";
 import { success, error, getClientIp } from "@/lib/api-response";
-import { createAuditLog } from "@/lib/audit";
 import { getTraceId } from "@/lib/trace";
+import type { Prisma } from "@/generated/prisma/client";
 
 export async function POST(request: NextRequest) {
   const traceId = getTraceId(request);
@@ -50,11 +50,6 @@ export async function POST(request: NextRequest) {
       return error("授权码与应用不匹配", 400);
     }
 
-    await prisma.authCode.update({
-      where: { id: authCode.id },
-      data: { used: true },
-    });
-
     const user = await prisma.user.findUnique({
       where: { id: authCode.userId },
       include: { userRoles: { include: { role: true } } },
@@ -70,24 +65,37 @@ export async function POST(request: NextRequest) {
     const accessToken = signAccessToken(payload);
     const refreshToken = signRefreshToken(payload);
 
-    await prisma.session.create({
-      data: {
-        userId: user.id,
-        token: accessToken,
-        refreshToken,
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-        ip: getClientIp(request),
-        userAgent: request.headers.get("user-agent") ?? undefined,
-      },
-    });
+    await prisma.$transaction(async (tx) => {
+      const marked = await tx.authCode.updateMany({
+        where: { id: authCode.id, used: false },
+        data: { used: true },
+      });
 
-    await createAuditLog({
-      userId: user.id,
-      action: "AUTH_CODE_EXCHANGE",
-      resource: "auth_code",
-      detail: { appId, appName: app.name },
-      ip: getClientIp(request),
-      traceId,
+      if (marked.count !== 1) {
+        throw new Error("AUTH_CODE_ALREADY_USED");
+      }
+
+      await tx.session.create({
+        data: {
+          userId: user.id,
+          token: accessToken,
+          refreshToken,
+          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+          ip: getClientIp(request),
+          userAgent: request.headers.get("user-agent") ?? undefined,
+        },
+      });
+
+      await tx.auditLog.create({
+        data: {
+          userId: user.id,
+          action: "AUTH_CODE_EXCHANGE",
+          resource: "auth_code",
+          detail: { appId, appName: app.name } as Prisma.InputJsonValue,
+          ip: getClientIp(request),
+          traceId,
+        },
+      });
     });
 
     return success({

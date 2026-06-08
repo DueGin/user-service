@@ -2,29 +2,45 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, type CSSProperties } from "react";
+import type { PointerEvent as ReactPointerEvent } from "react";
 import { cn } from "@/lib/utils";
+import { ThemeToggle } from "@/components/theme-toggle";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   LayoutDashboard,
   Users,
   ShieldCheck,
   AppWindow,
   ScrollText,
+  BookOpenText,
   LogOut,
+  PanelLeftClose,
+  PanelLeftOpen,
   Shield,
 } from "lucide-react";
 
 const navItems = [
-  { href: "/admin", label: "仪表盘", icon: LayoutDashboard },
-  { href: "/admin/users", label: "用户管理", icon: Users },
-  { href: "/admin/roles", label: "角色管理", icon: ShieldCheck },
-  { href: "/admin/applications", label: "应用管理", icon: AppWindow },
-  { href: "/admin/audit-logs", label: "操作日志", icon: ScrollText },
+  { href: "/admin", label: "仪表盘", description: "服务概览", icon: LayoutDashboard },
+  { href: "/admin/users", label: "用户管理", description: "账号与状态", icon: Users },
+  { href: "/admin/roles", label: "角色管理", description: "权限配置", icon: ShieldCheck },
+  { href: "/admin/applications", label: "应用管理", description: "密钥与回调", icon: AppWindow },
+  { href: "/admin/integration-docs", label: "接入文档", description: "登录与授权", icon: BookOpenText },
+  { href: "/admin/audit-logs", label: "操作日志", description: "审计追踪", icon: ScrollText },
 ];
 
 export function AdminSidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   async function handleLogout() {
     try {
@@ -51,7 +67,9 @@ export function AdminSidebar() {
     const timer = window.setTimeout(() => {
       try {
         const data = JSON.parse(localStorage.getItem("admin_user") || "{}");
+        const savedCollapsed = localStorage.getItem("admin_sidebar_collapsed");
         setAdminUser(data);
+        setIsCollapsed(savedCollapsed === "true");
       } catch {
         // ignore
       }
@@ -60,24 +78,64 @@ export function AdminSidebar() {
     return () => window.clearTimeout(timer);
   }, []);
 
+  function toggleSidebar() {
+    const nextCollapsed = !isCollapsed;
+    setIsCollapsed(nextCollapsed);
+    localStorage.setItem("admin_sidebar_collapsed", String(nextCollapsed));
+  }
+
+  function updateTogglePosition(event: ReactPointerEvent<HTMLButtonElement>) {
+    const button = event.currentTarget;
+    const rect = button.getBoundingClientRect();
+    const handleHalfHeight = 22;
+    const y = Math.min(
+      Math.max(event.clientY - rect.top, handleHalfHeight),
+      rect.height - handleHalfHeight
+    );
+
+    button.style.setProperty("--admin-sidebar-toggle-y", `${y}px`);
+  }
+
   return (
-    <aside className="w-64 min-h-screen bg-slate-900/95 border-r border-slate-800/50 flex flex-col backdrop-blur">
-      {/* Brand */}
-      <div className="p-5 border-b border-slate-800/50">
+    <aside
+      className={cn(
+        "admin-sidebar group/sidebar sticky top-0 flex h-[100dvh] w-[76px] shrink-0 flex-col border-r border-white/10 transition-[width] duration-200 lg:w-72",
+        isCollapsed && "lg:w-[76px]"
+      )}
+    >
+      <button
+        type="button"
+        aria-label={isCollapsed ? "展开侧边栏" : "折叠侧边栏"}
+        title={isCollapsed ? "展开侧边栏" : "折叠侧边栏"}
+        onClick={toggleSidebar}
+        onPointerEnter={updateTogglePosition}
+        onPointerMove={updateTogglePosition}
+        style={{ "--admin-sidebar-toggle-y": "50%" } as CSSProperties}
+        className="admin-sidebar-toggle group/toggle hidden lg:flex"
+      >
+        <span className="admin-sidebar-toggle-handle absolute left-1/2 top-[var(--admin-sidebar-toggle-y)] -translate-x-1/2 -translate-y-1/2">
+          {isCollapsed ? <PanelLeftOpen className="size-3" /> : <PanelLeftClose className="size-3" />}
+        </span>
+      </button>
+
+      <div className={cn("border-b border-white/10 px-3 py-4 lg:px-5", isCollapsed && "lg:px-3")}>
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md shadow-blue-500/20">
-            <Shield className="w-4.5 h-4.5 text-white" />
+          <div className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-blue-300/25 bg-blue-300/10 text-blue-200 shadow-[0_0_0_1px_rgb(255_255_255/0.04)]">
+            <Shield className="size-5" />
           </div>
-          <div>
-            <h1 className="text-base font-bold text-white tracking-tight">User Service</h1>
-            <p className="text-[11px] text-slate-500">管理后台</p>
+          <div className={cn("hidden min-w-0 lg:block", isCollapsed && "lg:hidden")}>
+            <p className="truncate text-base font-semibold tracking-tight text-slate-50">
+              User Service
+            </p>
+            <p className="mt-0.5 text-xs text-slate-500">统一身份与权限中枢</p>
           </div>
         </div>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 p-3 space-y-0.5">
-        <p className="px-3 pt-2 pb-1.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">导航</p>
+      <nav className="flex-1 space-y-1 px-2 py-4 lg:px-3">
+        <p className={cn("hidden px-3 pb-2 text-xs font-medium text-slate-500 lg:block", isCollapsed && "lg:hidden")}>
+          工作区
+        </p>
         {navItems.map((item) => {
           const isActive =
             item.href === "/admin"
@@ -87,38 +145,93 @@ export function AdminSidebar() {
             <Link
               key={item.href}
               href={item.href}
+              title={item.label}
               className={cn(
-                "flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] transition-all duration-150",
+                "group relative flex items-center justify-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all duration-150 lg:justify-start",
+                isCollapsed && "lg:justify-center lg:px-0",
                 isActive
-                  ? "bg-blue-500/10 text-blue-400 font-medium shadow-sm shadow-blue-500/5"
-                  : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/60"
+                  ? "bg-blue-500/10 text-blue-700 ring-1 ring-blue-500/20 dark:bg-blue-300/10 dark:text-blue-100 dark:ring-blue-300/20"
+                  : "text-slate-500 hover:bg-white/[0.045] hover:text-slate-200"
               )}
             >
-              <item.icon className={cn("w-4 h-4", isActive && "text-blue-400")} />
-              {item.label}
+              <item.icon className={cn("size-4 shrink-0", isActive && "text-blue-600 dark:text-blue-200")} />
+              <span className={cn("hidden min-w-0 lg:block", isCollapsed && "lg:hidden")}>
+                <span className="block truncate font-medium">{item.label}</span>
+                <span
+                  className={cn(
+                    "mt-0.5 block truncate text-xs",
+                    isActive ? "text-blue-700/70 dark:text-blue-100/60" : "text-slate-600 group-hover:text-slate-500"
+                  )}
+                >
+                  {item.description}
+                </span>
+              </span>
             </Link>
           );
         })}
       </nav>
 
-      {/* User info + Logout */}
-      <div className="p-3 border-t border-slate-800/50">
-        <div className="flex items-center gap-3 px-3 py-2 mb-1">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-slate-600 to-slate-700 flex items-center justify-center text-xs font-bold text-slate-300">
-            {adminUser.username ? adminUser.username.charAt(0).toUpperCase() : "A"}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-slate-200 truncate">{adminUser.username || "Admin"}</p>
-            <p className="text-[11px] text-slate-500 truncate">{adminUser.roles?.length ? adminUser.roles.join(", ") : "管理员"}</p>
-          </div>
-        </div>
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] text-slate-400 hover:text-red-400 hover:bg-red-500/5 transition-all duration-150 w-full"
-        >
-          <LogOut className="w-4 h-4" />
-          退出登录
-        </button>
+      <div className="border-t border-white/10 p-2 lg:p-3">
+        <ThemeToggle
+          className={cn(
+            "mb-2 w-full px-0 lg:px-3",
+            isCollapsed && "lg:px-0 [&_span]:hidden"
+          )}
+        />
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            title={adminUser.username || "Admin"}
+            className={cn(
+              "flex w-full items-center justify-center gap-3 rounded-xl border border-white/10 bg-white/[0.035] p-2 text-left outline-none transition-all duration-150 hover:bg-white/[0.055] focus-visible:ring-2 focus-visible:ring-blue-400/35 lg:justify-start lg:p-3",
+              isCollapsed && "lg:justify-center lg:p-2"
+            )}
+          >
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-slate-800 text-xs font-semibold text-blue-100 ring-1 ring-white/10">
+              {adminUser.username ? adminUser.username.charAt(0).toUpperCase() : "A"}
+            </div>
+            <div className={cn("hidden min-w-0 flex-1 lg:block", isCollapsed && "lg:hidden")}>
+              <p className="truncate text-sm font-medium text-slate-200">
+                {adminUser.username || "Admin"}
+              </p>
+              <p className="truncate text-xs text-slate-500">
+                {adminUser.roles?.length ? adminUser.roles.join(", ") : "管理员"}
+              </p>
+            </div>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            side="right"
+            align="end"
+            sideOffset={10}
+            className="w-64 border border-white/10 bg-white p-2 text-slate-900 shadow-2xl dark:bg-slate-950 dark:text-slate-100"
+          >
+            <DropdownMenuGroup>
+              <DropdownMenuLabel className="px-2 py-2">
+                <div className="flex items-center gap-3">
+                  <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-slate-800 text-sm font-semibold text-blue-100 ring-1 ring-white/10">
+                    {adminUser.username ? adminUser.username.charAt(0).toUpperCase() : "A"}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
+                      {adminUser.username || "Admin"}
+                    </p>
+                    <p className="truncate text-xs font-normal text-slate-500">
+                      {adminUser.roles?.length ? adminUser.roles.join(", ") : "管理员"}
+                    </p>
+                  </div>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                variant="destructive"
+                onClick={handleLogout}
+                className="px-2 py-2 text-red-600 focus:bg-red-50 focus:text-red-700 dark:text-red-300 dark:focus:bg-red-500/10 dark:focus:text-red-200"
+              >
+                <LogOut className="size-4" />
+                退出登录
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </aside>
   );

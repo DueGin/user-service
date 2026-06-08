@@ -24,6 +24,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Plus, Edit, Trash2, ShieldCheck } from "lucide-react";
 import { adminFetch } from "@/lib/admin-api";
 import { toast } from "sonner";
+import { AdminPageHeader } from "@/components/admin-page-header";
 
 interface Role {
   id: string;
@@ -128,42 +129,38 @@ export default function RolesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-sm">
-            <ShieldCheck className="w-4 h-4 text-white" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-white tracking-tight">角色管理</h1>
-            <p className="text-slate-400 text-sm mt-0.5">管理系统角色及权限配置</p>
-          </div>
-        </div>
-        <Button onClick={openCreate} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-sm shadow-blue-500/20">
-          <Plus className="w-4 h-4 mr-2" />
-          创建角色
-        </Button>
-      </div>
+      <AdminPageHeader
+        title="角色管理"
+        description="定义角色说明与权限集合，并追踪每个角色的使用范围。"
+        icon={ShieldCheck}
+        action={
+          <Button onClick={openCreate} className="admin-primary-button">
+            <Plus className="w-4 h-4 mr-2" />
+            创建角色
+          </Button>
+        }
+      />
 
-      <Card className="bg-slate-900/60 border-slate-800/50">
-        <CardContent className="pt-6">
+      <Card className="admin-panel py-0">
+        <CardContent className="p-0">
           <Table>
             <TableHeader>
-              <TableRow className="border-slate-800/50 hover:bg-transparent">
-                <TableHead className="text-slate-500 text-xs font-semibold uppercase tracking-wider">角色名</TableHead>
-                <TableHead className="text-slate-500 text-xs font-semibold uppercase tracking-wider">描述</TableHead>
-                <TableHead className="text-slate-500 text-xs font-semibold uppercase tracking-wider">权限</TableHead>
-                <TableHead className="text-slate-500 text-xs font-semibold uppercase tracking-wider">用户数</TableHead>
-                <TableHead className="text-slate-500 text-xs font-semibold uppercase tracking-wider">创建时间</TableHead>
-                <TableHead className="text-slate-500 text-xs font-semibold uppercase tracking-wider">操作</TableHead>
+              <TableRow className="border-white/[0.06] hover:bg-transparent">
+                <TableHead className="px-5 text-xs font-medium text-slate-500">角色名</TableHead>
+                <TableHead className="text-xs font-medium text-slate-500">描述</TableHead>
+                <TableHead className="text-xs font-medium text-slate-500">权限</TableHead>
+                <TableHead className="text-xs font-medium text-slate-500">用户数</TableHead>
+                <TableHead className="text-xs font-medium text-slate-500">创建时间</TableHead>
+                <TableHead className="pr-5 text-xs font-medium text-slate-500">操作</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 <>
                   {[1,2,3].map(i => (
-                    <TableRow key={i} className="border-slate-800/30">
+                    <TableRow key={i} className="border-white/[0.06]">
                       {[1,2,3,4,5,6].map(j => (
-                        <TableCell key={j}><div className="h-4 bg-slate-800/50 rounded animate-pulse" /></TableCell>
+                        <TableCell key={j} className={j === 1 ? "pl-5" : j === 6 ? "pr-5" : ""}><div className="h-4 animate-pulse rounded bg-white/[0.055]" /></TableCell>
                       ))}
                     </TableRow>
                   ))}
@@ -174,8 +171,8 @@ export default function RolesPage() {
                 </TableRow>
               ) : (
                 roles.map((role) => (
-                  <TableRow key={role.id} className="border-slate-800/30 hover:bg-slate-800/20 transition-colors">
-                    <TableCell className="text-slate-200 font-medium text-sm">{role.name}</TableCell>
+                  <TableRow key={role.id} className="border-white/[0.06] transition-colors hover:bg-white/[0.035]">
+                    <TableCell className="pl-5 text-sm font-medium text-slate-200">{role.name}</TableCell>
                     <TableCell className="text-slate-300">{role.description || "-"}</TableCell>
                     <TableCell>
                       <div className="flex gap-1 flex-wrap max-w-xs">
@@ -195,9 +192,9 @@ export default function RolesPage() {
                     <TableCell className="text-slate-400 text-sm">
                       {new Date(role.createdAt).toLocaleString("zh-CN")}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="pr-5">
                       <div className="flex gap-2">
-                        <Button size="sm" variant="ghost" onClick={() => openEdit(role)} className="text-slate-400 hover:text-white">
+                        <Button size="sm" variant="ghost" onClick={() => openEdit(role)} className="text-slate-400 hover:text-blue-500">
                           <Edit className="w-4 h-4" />
                         </Button>
                         <Button size="sm" variant="ghost" onClick={() => handleDelete(role)} className="text-slate-400 hover:text-red-400">
@@ -214,26 +211,26 @@ export default function RolesPage() {
       </Card>
 
       <Dialog open={showForm} onOpenChange={setShowForm}>
-        <DialogContent className="bg-slate-900 border-slate-800 text-white sm:max-w-md">
+        <DialogContent className="admin-panel text-slate-100 shadow-2xl sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-lg">{editRole ? "编辑角色" : "创建角色"}</DialogTitle>
+            <DialogTitle className="text-lg text-slate-50">{editRole ? "编辑角色" : "创建角色"}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label className="text-slate-300 text-sm">角色名 *</Label>
-              <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="h-10 bg-slate-800/50 border-slate-700 focus:border-blue-500" required />
+              <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="admin-field h-10" required />
             </div>
             <div className="space-y-2">
               <Label className="text-slate-300 text-sm">描述</Label>
-              <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="bg-slate-800/50 border-slate-700 focus:border-blue-500" rows={2} />
+              <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="admin-field" rows={2} />
             </div>
             <div className="space-y-2">
               <Label className="text-slate-300 text-sm">权限（逗号分隔）</Label>
-              <Textarea value={form.permissions} onChange={(e) => setForm({ ...form, permissions: e.target.value })} placeholder="user:read, user:write, role:manage" className="bg-slate-800/50 border-slate-700 focus:border-blue-500" rows={3} />
+              <Textarea value={form.permissions} onChange={(e) => setForm({ ...form, permissions: e.target.value })} placeholder="user:read, user:write, role:manage" className="admin-field" rows={3} />
             </div>
             <div className="flex justify-end gap-2 pt-2">
-              <Button type="button" variant="outline" onClick={() => setShowForm(false)} className="border-slate-700 text-slate-400 hover:text-white">取消</Button>
-              <Button type="submit" className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">{editRole ? "保存" : "创建"}</Button>
+              <Button type="button" variant="outline" onClick={() => setShowForm(false)} className="admin-secondary-button">取消</Button>
+              <Button type="submit" className="admin-primary-button">{editRole ? "保存" : "创建"}</Button>
             </div>
           </form>
         </DialogContent>

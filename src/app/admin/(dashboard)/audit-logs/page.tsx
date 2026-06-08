@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState, useCallback } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -22,6 +22,7 @@ import {
 import { ScrollText } from "lucide-react";
 import { adminFetch } from "@/lib/admin-api";
 import { toast } from "sonner";
+import { AdminPageHeader } from "@/components/admin-page-header";
 
 interface AuditLog {
   id: string;
@@ -63,7 +64,7 @@ const actionColors: Record<string, string> = {
   UPDATE_APPLICATION: "bg-amber-500/10 text-amber-400 border-amber-500/20",
   DISABLE_APPLICATION: "bg-red-500/10 text-red-400 border-red-500/20",
   REGENERATE_API_KEY: "bg-orange-500/10 text-orange-400 border-orange-500/20",
-  AUTH_CODE_EXCHANGE: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
+  AUTH_CODE_EXCHANGE: "bg-blue-500/10 text-blue-400 border-blue-500/20",
   ASSIGN_ROLES: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20",
 };
 
@@ -125,24 +126,20 @@ export default function AuditLogsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-sm">
-          <ScrollText className="w-4 h-4 text-white" />
-        </div>
-        <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">操作日志</h1>
-          <p className="text-slate-400 text-sm mt-0.5">系统操作审计记录</p>
-        </div>
-      </div>
+      <AdminPageHeader
+        title="操作日志"
+        description="按操作类型、资源类型和 Trace ID 追踪系统审计记录。"
+        icon={ScrollText}
+      />
 
-      <Card className="bg-slate-900/60 border-slate-800/50">
-        <CardHeader>
-          <div className="flex items-center gap-3">
+      <Card className="admin-panel py-0">
+        <CardHeader className="border-b border-white/10 px-5 py-4">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
             <Select value={actionFilter} onValueChange={(v) => setActionFilter(v ?? "all")}>
-              <SelectTrigger className="w-48 bg-slate-800/50 border-slate-700 text-slate-300 h-9 text-sm">
+              <SelectTrigger className="admin-field h-9 w-full text-sm lg:w-48">
                 <SelectValue placeholder="筛选操作类型" />
               </SelectTrigger>
-              <SelectContent className="bg-slate-800 border-slate-700">
+              <SelectContent className="admin-select-content">
                 <SelectItem value="all">全部操作</SelectItem>
                 <SelectItem value="REGISTER">注册</SelectItem>
                 <SelectItem value="LOGIN">登录</SelectItem>
@@ -155,10 +152,10 @@ export default function AuditLogsPage() {
               </SelectContent>
             </Select>
             <Select value={resourceFilter} onValueChange={(v) => setResourceFilter(v ?? "all")}>
-              <SelectTrigger className="w-40 bg-slate-800/50 border-slate-700 text-slate-300 h-9 text-sm">
+              <SelectTrigger className="admin-field h-9 w-full text-sm lg:w-40">
                 <SelectValue placeholder="筛选资源" />
               </SelectTrigger>
-              <SelectContent className="bg-slate-800 border-slate-700">
+              <SelectContent className="admin-select-content">
                 <SelectItem value="all">全部资源</SelectItem>
                 <SelectItem value="user">用户</SelectItem>
                 <SelectItem value="session">会话</SelectItem>
@@ -173,30 +170,30 @@ export default function AuditLogsPage() {
               placeholder="搜索 Trace ID..."
               value={traceIdFilter}
               onChange={(e) => setTraceIdFilter(e.target.value)}
-              className="w-56 bg-slate-800/50 border border-slate-700 rounded-md px-3 h-9 text-sm text-slate-300 placeholder:text-slate-500 focus:outline-none focus:border-blue-500"
+              className="admin-field h-9 w-full rounded-lg px-3 text-sm lg:w-56"
             />
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           <Table>
             <TableHeader>
-              <TableRow className="border-slate-800/50 hover:bg-transparent">
-                <TableHead className="text-slate-500 text-xs font-semibold uppercase tracking-wider">时间</TableHead>
-                <TableHead className="text-slate-500 text-xs font-semibold uppercase tracking-wider">用户</TableHead>
-                <TableHead className="text-slate-500 text-xs font-semibold uppercase tracking-wider">操作</TableHead>
-                <TableHead className="text-slate-500 text-xs font-semibold uppercase tracking-wider">资源</TableHead>
-                <TableHead className="text-slate-500 text-xs font-semibold uppercase tracking-wider">详情</TableHead>
-                <TableHead className="text-slate-500 text-xs font-semibold uppercase tracking-wider">IP</TableHead>
-                <TableHead className="text-slate-500 text-xs font-semibold uppercase tracking-wider">Trace ID</TableHead>
+              <TableRow className="border-white/[0.06] hover:bg-transparent">
+                <TableHead className="px-5 text-xs font-medium text-slate-500">时间</TableHead>
+                <TableHead className="text-xs font-medium text-slate-500">用户</TableHead>
+                <TableHead className="text-xs font-medium text-slate-500">操作</TableHead>
+                <TableHead className="text-xs font-medium text-slate-500">资源</TableHead>
+                <TableHead className="text-xs font-medium text-slate-500">详情</TableHead>
+                <TableHead className="text-xs font-medium text-slate-500">IP</TableHead>
+                <TableHead className="pr-5 text-xs font-medium text-slate-500">Trace ID</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 <>
                   {[1,2,3,4,5].map(i => (
-                    <TableRow key={i} className="border-slate-800/30">
+                    <TableRow key={i} className="border-white/[0.06]">
                       {[1,2,3,4,5,6,7].map(j => (
-                        <TableCell key={j}><div className="h-4 bg-slate-800/50 rounded animate-pulse w-full" /></TableCell>
+                        <TableCell key={j} className={j === 1 ? "pl-5" : j === 7 ? "pr-5" : ""}><div className="h-4 w-full animate-pulse rounded bg-white/[0.055]" /></TableCell>
                       ))}
                     </TableRow>
                   ))}
@@ -207,8 +204,8 @@ export default function AuditLogsPage() {
                 </TableRow>
               ) : (
                 logs.map((log) => (
-                  <TableRow key={log.id} className="border-slate-800/30 hover:bg-slate-800/20 transition-colors">
-                    <TableCell className="text-slate-400 text-sm whitespace-nowrap tabular-nums">
+                  <TableRow key={log.id} className="border-white/[0.06] transition-colors hover:bg-white/[0.035]">
+                    <TableCell className="whitespace-nowrap pl-5 text-sm tabular-nums text-slate-400">
                       {new Date(log.createdAt).toLocaleString("zh-CN")}
                     </TableCell>
                     <TableCell>
@@ -224,7 +221,7 @@ export default function AuditLogsPage() {
                       {log.detail ? JSON.stringify(log.detail) : "-"}
                     </TableCell>
                     <TableCell className="text-slate-500 text-xs font-mono">{log.ip || "-"}</TableCell>
-                    <TableCell className="text-slate-500 text-xs font-mono max-w-[180px] truncate" title={log.traceId || ""}>
+                    <TableCell className="max-w-[180px] truncate pr-5 font-mono text-xs text-slate-500" title={log.traceId || ""}>
                       {log.traceId ? (
                         <button
                           onClick={() => { navigator.clipboard.writeText(log.traceId!); toast.success("已复制 Trace ID"); }}
@@ -241,15 +238,15 @@ export default function AuditLogsPage() {
           </Table>
 
           {pagination.totalPages > 1 && (
-            <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-800/50">
+            <div className="flex items-center justify-between border-t border-white/10 px-5 py-4">
               <span className="text-xs text-slate-500">
                 共 {pagination.total} 条 · 第 {pagination.page}/{pagination.totalPages} 页
               </span>
               <div className="flex gap-2">
-                <Button size="sm" variant="outline" disabled={pagination.page <= 1} onClick={() => loadLogs(pagination.page - 1)} className="border-slate-700 text-slate-400 hover:text-white h-8 text-xs">
+                <Button size="sm" variant="outline" disabled={pagination.page <= 1} onClick={() => loadLogs(pagination.page - 1)} className="admin-secondary-button h-8 text-xs">
                   上一页
                 </Button>
-                <Button size="sm" variant="outline" disabled={pagination.page >= pagination.totalPages} onClick={() => loadLogs(pagination.page + 1)} className="border-slate-700 text-slate-400 hover:text-white h-8 text-xs">
+                <Button size="sm" variant="outline" disabled={pagination.page >= pagination.totalPages} onClick={() => loadLogs(pagination.page + 1)} className="admin-secondary-button h-8 text-xs">
                   下一页
                 </Button>
               </div>
