@@ -19,6 +19,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
       POSTGRES_DB: ${POSTGRES_DB:-user_service}
       POSTGRES_SCHEMA: ${POSTGRES_SCHEMA:-public}
+      POSTGRES_TIMEZONE: ${POSTGRES_TIMEZONE:-Asia/Shanghai}
       POSTGRES_SSLMODE: ${POSTGRES_SSLMODE:-}
       POSTGRES_URL_EXTRA_PARAMS: ${POSTGRES_URL_EXTRA_PARAMS:-}
     ports:
@@ -42,6 +43,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-user_service}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
       POSTGRES_DB: ${POSTGRES_DB:-user_service}
+      TZ: ${POSTGRES_TIMEZONE:-Asia/Shanghai}
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:

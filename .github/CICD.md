@@ -205,6 +205,7 @@ POSTGRES_USER="user_service"
 POSTGRES_PASSWORD="replace-with-strong-db-password"
 POSTGRES_DB="user_service"
 POSTGRES_SCHEMA="public"
+POSTGRES_TIMEZONE="Asia/Shanghai"
 
 JWT_SECRET="replace-with-strong-secret"
 JWT_REFRESH_SECRET="replace-with-strong-refresh-secret"

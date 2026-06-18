@@ -9,9 +9,10 @@ if [ -z "${DATABASE_URL:-}" ]; then
 
   POSTGRES_PORT="${POSTGRES_PORT:-5432}"
   POSTGRES_SCHEMA="${POSTGRES_SCHEMA:-public}"
+  POSTGRES_TIMEZONE="${POSTGRES_TIMEZONE:-Asia/Shanghai}"
 
   DATABASE_URL="$(
-    node - "$POSTGRES_HOST" "$POSTGRES_PORT" "$POSTGRES_USER" "$POSTGRES_PASSWORD" "$POSTGRES_DB" "$POSTGRES_SCHEMA" "${POSTGRES_SSLMODE:-}" "${POSTGRES_URL_EXTRA_PARAMS:-}" <<'NODE'
+    node - "$POSTGRES_HOST" "$POSTGRES_PORT" "$POSTGRES_USER" "$POSTGRES_PASSWORD" "$POSTGRES_DB" "$POSTGRES_SCHEMA" "$POSTGRES_TIMEZONE" "${POSTGRES_SSLMODE:-}" "${POSTGRES_URL_EXTRA_PARAMS:-}" <<'NODE'
 const [
   host,
   port,
@@ -19,6 +20,7 @@ const [
   password,
   database,
   schema,
+  timezone,
   sslmode,
   extraParams,
 ] = process.argv.slice(2);
@@ -37,6 +39,10 @@ if (extraParams) {
     if (!key) continue;
     query.set(key, valueParts.join("="));
   }
+}
+
+if (timezone && !query.has("options")) {
+  query.set("options", `-c timezone=${timezone}`);
 }
 
 process.stdout.write(
