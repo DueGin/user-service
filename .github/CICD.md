@@ -145,7 +145,7 @@ CI/CD 侧配置项总览：
 
 - `SSH_*` 用于 GitHub Actions 通过 SSH 登录目标服务器。
 - `GHCR_USERNAME` 和 `GHCR_TOKEN` 用于服务器执行 `docker login ghcr.io`，然后拉取 GHCR 镜像。
-- workflow 构建并推送镜像时使用 GitHub 内置的 `GITHUB_TOKEN`，不需要你额外配置。
+- workflow 上传镜像到 GHCR 时使用 GitHub 内置的 `GITHUB_TOKEN`，不需要你额外配置。
 - 如果 GHCR package 是私有的，`GHCR_TOKEN` 至少需要具备读取 package 的权限。
 
 ## Environment Variables
@@ -210,9 +210,14 @@ POSTGRES_TIMEZONE="Asia/Shanghai"
 JWT_SECRET="replace-with-strong-secret"
 JWT_REFRESH_SECRET="replace-with-strong-refresh-secret"
 USER_SERVICE_BASE_URL="https://user-service.example.com"
+USER_SERVICE_IMAGE_REGISTRY="ghcr.io"
+USER_SERVICE_IMAGE_REPOSITORY="your-github-owner/user-service"
+USER_SERVICE_IMAGE_TAG="latest"
 USER_SERVICE_PORT="3000"
 USER_SERVICE_CONTAINER_NAME="user-service"
 ```
+
+完整镜像地址会由 `USER_SERVICE_IMAGE_REGISTRY`、`USER_SERVICE_IMAGE_REPOSITORY`、`USER_SERVICE_IMAGE_TAG` 拼接得到。流水线部署时只会临时覆盖 `USER_SERVICE_IMAGE_TAG`，仓库地址和仓库路径仍由服务器 `.env` 维护。
 
 如果外部 PostgreSQL 要求 SSL：
 
@@ -246,7 +251,15 @@ docker-compose.yml
 
 ## 部署流程
 
-两条流水线的核心流程一致：
+两条流水线都拆分为 3 个独立 job，GitHub Actions 页面会按以下阶段展示：
+
+| 阶段 | Job 名称 | 说明 |
+| --- | --- | --- |
+| 构建 | `build` | 拉取代码，执行 Node.js 依赖安装、Prisma Client 生成、lint、test、应用构建，并构建 Docker 镜像 tar 包作为 artifact |
+| 上传镜像 | `push-image` | 下载 `build` 阶段生成的镜像 artifact，登录 GHCR，并推送对应镜像标签 |
+| 部署 | `deploy` | 上传 `docker-compose.yml` 到服务器，登录服务器 GHCR，指定本次镜像标签并执行 Docker Compose 部署 |
+
+### 1. 构建阶段
 
 1. 手动触发 workflow。
 2. 拉取代码。
@@ -256,18 +269,28 @@ docker-compose.yml
 6. 执行 `npm run lint`。
 7. 执行 `npm test`。
 8. 执行 `npm run build`。
-9. 登录 GHCR。
-10. 构建并推送 Docker 镜像。
-11. 通过 SSH 登录服务器。
-12. 创建 `COMPOSE_DIR`。
-13. 上传 `docker-compose.yml`。
-14. 在服务器登录 GHCR。
-15. 设置本次部署镜像 `USER_SERVICE_IMAGE`。
-16. 执行 `docker compose config --quiet`。
-17. 执行 `docker compose pull user-service`。
-18. 执行 `docker compose run --rm user-service npx prisma migrate deploy`。
-19. 执行 `docker compose up -d user-service`。
-20. 执行 `docker image prune -f` 清理未使用镜像。
+9. 构建 Docker 镜像 tar 包。
+10. 上传镜像 tar 包 artifact，供 `push-image` 阶段使用。
+
+### 2. 上传镜像阶段
+
+1. 下载 `build` 阶段生成的镜像 artifact。
+2. 使用 GitHub 内置 `GITHUB_TOKEN` 登录 GHCR。
+3. 加载 Docker 镜像 tar 包。
+4. 推送本次部署需要的镜像标签。
+
+### 3. 部署阶段
+
+1. 通过 SSH 登录服务器。
+2. 创建 `COMPOSE_DIR`。
+3. 上传 `docker-compose.yml`。
+4. 在服务器登录 GHCR。
+5. 设置本次部署镜像标签 `USER_SERVICE_IMAGE_TAG`。
+6. 执行 `docker compose config --quiet`。
+7. 执行 `docker compose pull user-service`。
+8. 执行 `docker compose run --rm user-service npx prisma migrate deploy`。
+9. 执行 `docker compose up -d user-service`。
+10. 执行 `docker image prune -f` 清理未使用镜像。
 
 ## 首次部署步骤
 
@@ -329,7 +352,9 @@ GitHub -> Actions -> Deploy Production -> Run workflow -> 填写 version
 如果需要回滚，可以在服务器 `.env` 中临时指定旧镜像：
 
 ```env
-USER_SERVICE_IMAGE="ghcr.io/<owner>/<repo>:v<old-version>"
+USER_SERVICE_IMAGE_REGISTRY="ghcr.io"
+USER_SERVICE_IMAGE_REPOSITORY="<owner>/<repo>"
+USER_SERVICE_IMAGE_TAG="v<old-version>"
 ```
 
 然后执行：
@@ -353,6 +378,24 @@ docker compose up -d user-service
 - `Settings -> Environments -> test -> Variables`
 - `Settings -> Environments -> production -> Variables`
 
+### `ssh: handshake failed: ssh: unable to authenticate`
+
+说明 workflow 已经连到了 SSH 服务，但认证没有通过。常见原因：
+
+- `SSH_HOST`、`SSH_PORT`、`SSH_USERNAME` 或 `SSH_PASSWORD` 配错。
+- `SSH_PASSWORD` 没有配置在对应的 GitHub Environment Secret 中，或者被误配置成了 Variable。
+- 当前运行的是 `test` Environment，但只在 `production` Environment 配了 SSH Secret，或反过来。
+- 服务器禁用了密码登录，例如 `PasswordAuthentication no`。
+- 服务器限制了登录用户，例如 root 登录被禁用，或 `AllowUsers` 不包含当前用户。
+
+可以先在本地或任意终端验证同一组账号密码：
+
+```bash
+ssh -p <SSH_PORT> <SSH_USERNAME>@<SSH_HOST>
+```
+
+如果服务器只允许 SSH 私钥登录，需要把 workflow 从密码登录改为私钥登录。
+
 ### 生产环境版本号没有 `v` 前缀
 
 正常。输入 `1.0.0` 时，workflow 会自动转换成 `v1.0.0`。
@@ -370,7 +413,7 @@ docker compose up -d user-service
 
 通常是镜像不存在或 GHCR 权限不足。
 
-检查 Actions 日志中 `Build and push image` 是否成功，以及服务器上的 `docker login ghcr.io` 是否成功。
+检查 Actions 日志中 `build` 和 `push-image` 两个 job 是否成功，以及服务器上的 `docker login ghcr.io` 是否成功。
 
 ### `prisma migrate deploy` 失败
 
