@@ -1,10 +1,6 @@
 name: Deploy Test
 
 on:
-  push:
-    branches:
-      - develop
-      - test
   workflow_dispatch:
 
 permissions:

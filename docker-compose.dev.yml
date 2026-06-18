@@ -1,0 +1,56 @@
+name: user-service-dev
+
+services:
+  user-service:
+    build:
+      context: .
+    image: user-service:dev
+    container_name: ${USER_SERVICE_CONTAINER_NAME:-user-service-dev}
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      HOSTNAME: 0.0.0.0
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: ${POSTGRES_USER:-user_service}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
+      POSTGRES_DB: ${POSTGRES_DB:-user_service}
+      POSTGRES_SCHEMA: ${POSTGRES_SCHEMA:-public}
+      POSTGRES_SSLMODE: ${POSTGRES_SSLMODE:-}
+      POSTGRES_URL_EXTRA_PARAMS: ${POSTGRES_URL_EXTRA_PARAMS:-}
+    ports:
+      - "${USER_SERVICE_PORT:-3000}:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: sh -c "npx prisma migrate deploy && node server.js"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/ >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  postgres:
+    image: postgres:17-alpine
+    container_name: ${POSTGRES_CONTAINER_NAME:-user-service-postgres-dev}
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-user_service}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
+      POSTGRES_DB: ${POSTGRES_DB:-user_service}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - user_service_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  user_service_postgres_data:

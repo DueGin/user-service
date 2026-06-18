@@ -11,6 +11,14 @@ services:
       NODE_ENV: production
       PORT: 3000
       HOSTNAME: 0.0.0.0
+      POSTGRES_HOST: ${POSTGRES_HOST:?Set POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
+      POSTGRES_USER: ${POSTGRES_USER:?Set POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:?Set POSTGRES_DB}
+      POSTGRES_SCHEMA: ${POSTGRES_SCHEMA:-public}
+      POSTGRES_SSLMODE: ${POSTGRES_SSLMODE:-}
+      POSTGRES_URL_EXTRA_PARAMS: ${POSTGRES_URL_EXTRA_PARAMS:-}
     ports:
       - "${USER_SERVICE_PORT:-3000}:3000"
     healthcheck:
@@ -19,26 +27,3 @@ services:
       timeout: 5s
       retries: 3
       start_period: 30s
-
-  postgres:
-    image: postgres:17-alpine
-    profiles:
-      - database
-    container_name: ${POSTGRES_CONTAINER_NAME:-user-service-postgres}
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-user_service}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
-      POSTGRES_DB: ${POSTGRES_DB:-user_service}
-    ports:
-      - "${POSTGRES_PORT:-5432}:5432"
-    volumes:
-      - user_service_postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-volumes:
-  user_service_postgres_data:
