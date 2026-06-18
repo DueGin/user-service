@@ -85,10 +85,11 @@ const params = [
 ];
 
 const prerequisites = [
-  "在应用管理中创建接入应用，保存 appId 与 apiSecret。",
+  "在应用管理中创建接入应用，选择一个或多个已有统一账号作为应用管理员，并保存 appId 与 apiSecret。",
   "配置 callbackUrl，重定向模式会校验回调地址的 origin。",
   "嵌入模式需要将业务系统域名加入 allowedOrigins，并在 URL 中传入 origin。",
   "业务系统后端保存 apiSecret，浏览器端不要暴露该密钥。",
+  "用户首次通过应用登录或授权时会自动沉淀应用成员关系；被该应用禁用的成员不会被自动重新启用。",
 ];
 
 function CodeBlock({ children }: { children: string }) {
@@ -159,7 +160,7 @@ export default function IntegrationDocsPage() {
               <Badge className="bg-green-500/10 text-green-400">已提供</Badge>
             </div>
             <p className="mt-4 text-sm leading-6 text-slate-400">
-              外部系统可直接跳转到该页面完成统一账号登录。
+              外部系统可直接跳转到该页面完成统一账号登录，并按应用沉淀成员关系。
             </p>
           </CardContent>
         </Card>
@@ -174,7 +175,7 @@ export default function IntegrationDocsPage() {
               <Badge className="bg-blue-500/10 text-blue-400">可选</Badge>
             </div>
             <p className="mt-4 text-sm leading-6 text-slate-400">
-              登录页会保留接入参数并引导新用户切换到注册页。
+              登录页会保留接入参数并引导新用户切换到注册页，注册后归入当前接入应用。
             </p>
           </CardContent>
         </Card>
@@ -296,6 +297,36 @@ export default function IntegrationDocsPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="admin-panel py-0">
+        <CardHeader className="border-b border-white/10 px-5 py-4">
+          <SectionTitle
+            icon={ShieldCheck}
+            title="账号与应用成员关系"
+            description="统一账号是一层，应用成员关系是另一层。"
+          />
+        </CardHeader>
+        <CardContent className="grid gap-3 p-5 md:grid-cols-3">
+          <div className="rounded-lg border border-white/10 bg-white/[0.035] p-4">
+            <p className="text-sm font-medium text-slate-200">统一账号</p>
+            <p className="mt-2 text-sm leading-6 text-slate-400">
+              用户只维护一份账号资料，可用于多个接入应用。
+            </p>
+          </div>
+          <div className="rounded-lg border border-white/10 bg-white/[0.035] p-4">
+            <p className="text-sm font-medium text-slate-200">应用成员</p>
+            <p className="mt-2 text-sm leading-6 text-slate-400">
+              每个应用独立记录成员关系和启用状态，由对应应用管理员维护。
+            </p>
+          </div>
+          <div className="rounded-lg border border-white/10 bg-white/[0.035] p-4">
+            <p className="text-sm font-medium text-slate-200">禁用边界</p>
+            <p className="mt-2 text-sm leading-6 text-slate-400">
+              在某个应用禁用成员，只影响该应用访问，不影响其他应用。
+            </p>
           </div>
         </CardContent>
       </Card>

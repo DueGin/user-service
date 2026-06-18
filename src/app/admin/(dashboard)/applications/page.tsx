@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,
   TableBody,
@@ -21,10 +22,26 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { AppWindow, Plus, Edit, Ban, RefreshCw, Eye, EyeOff, Copy } from "lucide-react";
 import { adminFetch } from "@/lib/admin-api";
 import { toast } from "sonner";
 import { AdminPageHeader } from "@/components/admin-page-header";
+
+type ApplicationAccessMode = "OPEN" | "MEMBERS_ONLY" | "ADMINS_ONLY";
+
+interface UserOption {
+  id: string;
+  username: string;
+  email: string | null;
+  status: string;
+}
 
 interface Application {
   id: string;
@@ -33,19 +50,42 @@ interface Application {
   apiKey: string;
   apiSecret?: string;
   status: string;
+  accessMode: ApplicationAccessMode;
   callbackUrl: string | null;
   allowedOrigins: string[];
   createdAt: string;
+  administrators: UserOption[];
 }
+
+const accessModeLabels: Record<ApplicationAccessMode, string> = {
+  OPEN: "开放登录",
+  MEMBERS_ONLY: "仅应用成员",
+  ADMINS_ONLY: "仅应用管理员",
+};
 
 export default function ApplicationsPage() {
   const [apps, setApps] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editApp, setEditApp] = useState<Application | null>(null);
-  const [form, setForm] = useState({ name: "", description: "", callbackUrl: "", allowedOrigins: "" });
+  const [form, setForm] = useState<{
+    name: string;
+    description: string;
+    callbackUrl: string;
+    allowedOrigins: string;
+    accessMode: ApplicationAccessMode;
+    adminUserIds: string[];
+  }>({
+    name: "",
+    description: "",
+    callbackUrl: "",
+    allowedOrigins: "",
+    accessMode: "OPEN",
+    adminUserIds: [],
+  });
   const [showSecret, setShowSecret] = useState<Record<string, boolean>>({});
   const [secrets, setSecrets] = useState<Record<string, string>>({});
+  const [activeUsers, setActiveUsers] = useState<UserOption[]>([]);
 
   const fetchApps = useCallback(async () => {
     try {
@@ -63,17 +103,34 @@ export default function ApplicationsPage() {
     await fetchApps();
   }, [fetchApps]);
 
+  const fetchActiveUsers = useCallback(async () => {
+    try {
+      const res = await adminFetch("/api/users?pageSize=100&status=ACTIVE");
+      if (res.success) setActiveUsers(res.data.items || []);
+    } catch {
+      toast.error("获取管理员账号列表失败");
+    }
+  }, []);
+
   useEffect(() => {
     const timer = window.setTimeout(() => {
       void fetchApps();
+      void fetchActiveUsers();
     }, 0);
 
     return () => window.clearTimeout(timer);
-  }, [fetchApps]);
+  }, [fetchApps, fetchActiveUsers]);
 
   function openCreate() {
     setEditApp(null);
-    setForm({ name: "", description: "", callbackUrl: "", allowedOrigins: "" });
+    setForm({
+      name: "",
+      description: "",
+      callbackUrl: "",
+      allowedOrigins: "",
+      accessMode: "OPEN",
+      adminUserIds: [],
+    });
     setShowForm(true);
   }
 
@@ -84,8 +141,25 @@ export default function ApplicationsPage() {
       description: app.description || "",
       callbackUrl: app.callbackUrl || "",
       allowedOrigins: app.allowedOrigins.join("\n"),
+      accessMode: app.accessMode,
+      adminUserIds: app.administrators.map((user) => user.id),
     });
     setShowForm(true);
+  }
+
+  function toggleAdminUser(userId: string, checked: boolean | "indeterminate") {
+    setForm((prev) => ({
+      ...prev,
+      adminUserIds: checked
+        ? Array.from(new Set([...prev.adminUserIds, userId]))
+        : prev.adminUserIds.filter((id) => id !== userId),
+    }));
+  }
+
+  function administratorSummary(app: Application) {
+    if (app.administrators.length === 0) return "未指派";
+    const names = app.administrators.map((user) => user.username);
+    return names.length > 2 ? `${names.slice(0, 2).join("、")} 等 ${names.length} 人` : names.join("、");
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -98,6 +172,8 @@ export default function ApplicationsPage() {
         .split("\n")
         .map((s) => s.trim())
         .filter(Boolean),
+      accessMode: form.accessMode,
+      adminUserIds: form.adminUserIds,
     };
 
     try {
@@ -112,6 +188,7 @@ export default function ApplicationsPage() {
           toast.info("请妥善保存 API Secret，后续无法再次查看");
         }
         setShowForm(false);
+        setEditApp(null);
         void loadApps();
       } else {
         toast.error(res.error);
@@ -139,7 +216,7 @@ export default function ApplicationsPage() {
   }
 
   async function handleDisable(app: Application) {
-    if (!confirm(`确认禁用应用 "${app.name}" ？`)) return;
+    if (!confirm(`确认禁用应用 "${app.name}"？`)) return;
     try {
       const res = await adminFetch(`/api/applications/${app.id}`, { method: "DELETE" });
       if (res.success) {
@@ -162,7 +239,7 @@ export default function ApplicationsPage() {
     <div className="space-y-6">
       <AdminPageHeader
         title="应用管理"
-        description="管理第三方应用、回调地址、允许来源与 API 密钥。"
+        description="配置接入应用、访问模式与应用管理员"
         icon={AppWindow}
         action={
           <Button onClick={openCreate} className="admin-primary-button">
@@ -178,6 +255,8 @@ export default function ApplicationsPage() {
             <TableHeader>
               <TableRow className="border-white/[0.06] hover:bg-transparent">
                 <TableHead className="px-5 text-xs font-medium text-slate-500">应用名</TableHead>
+                <TableHead className="text-xs font-medium text-slate-500">管理员</TableHead>
+                <TableHead className="text-xs font-medium text-slate-500">访问模式</TableHead>
                 <TableHead className="text-xs font-medium text-slate-500">API Key</TableHead>
                 <TableHead className="text-xs font-medium text-slate-500">API Secret</TableHead>
                 <TableHead className="text-xs font-medium text-slate-500">状态</TableHead>
@@ -189,17 +268,21 @@ export default function ApplicationsPage() {
             <TableBody>
               {loading ? (
                 <>
-                  {[1,2,3].map(i => (
+                  {[1, 2, 3].map((i) => (
                     <TableRow key={i} className="border-white/[0.06]">
-                      {[1,2,3,4,5,6,7].map(j => (
-                        <TableCell key={j} className={j === 1 ? "pl-5" : j === 7 ? "pr-5" : ""}><div className="h-4 animate-pulse rounded bg-white/[0.055]" /></TableCell>
+                      {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((j) => (
+                        <TableCell key={j} className={j === 1 ? "pl-5" : j === 9 ? "pr-5" : ""}>
+                          <div className="h-4 animate-pulse rounded bg-white/[0.055]" />
+                        </TableCell>
                       ))}
                     </TableRow>
                   ))}
                 </>
               ) : apps.length === 0 ? (
                 <TableRow className="hover:bg-transparent">
-                  <TableCell colSpan={7} className="text-center text-slate-500 py-16 text-sm">暂无应用，点击上方按钮创建</TableCell>
+                  <TableCell colSpan={9} className="text-center text-slate-500 py-16 text-sm">
+                    暂无应用
+                  </TableCell>
                 </TableRow>
               ) : (
                 apps.map((app) => (
@@ -210,12 +293,18 @@ export default function ApplicationsPage() {
                         {app.description && <div className="text-xs text-slate-500 mt-0.5">{app.description}</div>}
                       </div>
                     </TableCell>
+                    <TableCell className="text-sm text-slate-400">{administratorSummary(app)}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="border-white/10 text-[11px] text-slate-300">
+                        {accessModeLabels[app.accessMode]}
+                      </Badge>
+                    </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
                         <code className="rounded-md border border-white/10 bg-slate-950/35 px-2 py-1 font-mono text-xs text-slate-300">
                           {app.apiKey.slice(0, 16)}...
                         </code>
-                        <Button size="sm" variant="ghost" onClick={() => copyToClipboard(app.apiKey)} className="h-6 w-6 p-0 text-slate-400">
+                        <Button size="sm" variant="ghost" onClick={() => copyToClipboard(app.apiKey)} className="h-6 w-6 p-0 text-slate-400" title="复制 API Key">
                           <Copy className="w-3 h-3" />
                         </Button>
                       </div>
@@ -224,12 +313,12 @@ export default function ApplicationsPage() {
                       {secrets[app.id] ? (
                         <div className="flex items-center gap-1">
                           <code className="rounded-md border border-white/10 bg-slate-950/35 px-2 py-1 font-mono text-xs text-slate-300">
-                            {showSecret[app.id] ? secrets[app.id] : "••••••••••"}
+                            {showSecret[app.id] ? secrets[app.id] : "********"}
                           </code>
-                          <Button size="sm" variant="ghost" onClick={() => setShowSecret((p) => ({ ...p, [app.id]: !p[app.id] }))} className="h-6 w-6 p-0 text-slate-400">
+                          <Button size="sm" variant="ghost" onClick={() => setShowSecret((p) => ({ ...p, [app.id]: !p[app.id] }))} className="h-6 w-6 p-0 text-slate-400" title={showSecret[app.id] ? "隐藏" : "显示"}>
                             {showSecret[app.id] ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
                           </Button>
-                          <Button size="sm" variant="ghost" onClick={() => copyToClipboard(secrets[app.id])} className="h-6 w-6 p-0 text-slate-400">
+                          <Button size="sm" variant="ghost" onClick={() => copyToClipboard(secrets[app.id])} className="h-6 w-6 p-0 text-slate-400" title="复制 API Secret">
                             <Copy className="w-3 h-3" />
                           </Button>
                         </div>
@@ -271,8 +360,14 @@ export default function ApplicationsPage() {
         </CardContent>
       </Card>
 
-      <Dialog open={showForm} onOpenChange={setShowForm}>
-        <DialogContent className="admin-panel text-slate-100 shadow-2xl sm:max-w-md">
+      <Dialog
+        open={showForm}
+        onOpenChange={(open) => {
+          setShowForm(open);
+          if (!open) setEditApp(null);
+        }}
+      >
+        <DialogContent className="admin-panel text-slate-100 shadow-2xl sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="text-lg text-slate-50">{editApp ? "编辑应用" : "创建应用"}</DialogTitle>
           </DialogHeader>
@@ -286,17 +381,57 @@ export default function ApplicationsPage() {
               <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className="admin-field" rows={2} />
             </div>
             <div className="space-y-2">
+              <Label className="text-slate-300 text-sm">访问模式</Label>
+              <Select
+                value={form.accessMode}
+                onValueChange={(value) => setForm({ ...form, accessMode: value as ApplicationAccessMode })}
+              >
+                <SelectTrigger className="admin-field h-10">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="admin-select-content">
+                  <SelectItem value="OPEN">开放登录</SelectItem>
+                  <SelectItem value="MEMBERS_ONLY">仅应用成员</SelectItem>
+                  <SelectItem value="ADMINS_ONLY">仅应用管理员</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
               <Label className="text-slate-300 text-sm">回调 URL</Label>
               <Input value={form.callbackUrl} onChange={(e) => setForm({ ...form, callbackUrl: e.target.value })} placeholder="https://your-app.com/callback" className="admin-field h-10" />
             </div>
             <div className="space-y-2">
               <Label className="text-slate-300 text-sm">允许的 Origins（每行一个）</Label>
-              <Textarea value={form.allowedOrigins} onChange={(e) => setForm({ ...form, allowedOrigins: e.target.value })} placeholder="https://your-app.com
-https://staging.your-app.com" className="admin-field" rows={3} />
+              <Textarea
+                value={form.allowedOrigins}
+                onChange={(e) => setForm({ ...form, allowedOrigins: e.target.value })}
+                placeholder={"https://your-app.com\nhttps://staging.your-app.com"}
+                className="admin-field"
+                rows={3}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-slate-300 text-sm">应用管理员 *</Label>
+              {activeUsers.length === 0 ? (
+                <p className="text-xs text-red-300">暂无可用账号，请先在用户管理中创建或启用账号。</p>
+              ) : (
+                <div className="max-h-48 space-y-1 overflow-y-auto rounded-md border border-white/10 bg-slate-950/25 p-2">
+                  {activeUsers.map((user) => (
+                    <label key={user.id} className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 hover:bg-white/[0.04]">
+                      <Checkbox
+                        checked={form.adminUserIds.includes(user.id)}
+                        onCheckedChange={(checked: boolean | "indeterminate") => toggleAdminUser(user.id, checked)}
+                      />
+                      <span className="text-sm text-slate-300">{user.username}</span>
+                      {user.email && <span className="truncate text-xs text-slate-500">{user.email}</span>}
+                    </label>
+                  ))}
+                </div>
+              )}
             </div>
             <div className="flex justify-end gap-2 pt-2">
               <Button type="button" variant="outline" onClick={() => setShowForm(false)} className="admin-secondary-button">取消</Button>
-              <Button type="submit" className="admin-primary-button">{editApp ? "保存" : "创建"}</Button>
+              <Button type="submit" className="admin-primary-button" disabled={form.adminUserIds.length === 0}>{editApp ? "保存" : "创建"}</Button>
             </div>
           </form>
         </DialogContent>

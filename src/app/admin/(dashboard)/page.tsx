@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Users,
@@ -56,12 +57,24 @@ const actionColors: Record<string, string> = {
 };
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function load() {
       try {
+        const adminUser = JSON.parse(localStorage.getItem("admin_user") || "{}");
+        const ADMIN_ROLES = ["超级管理员", "admin", "管理员"];
+        const isGlobalAdmin =
+          adminUser.isAdmin ||
+          adminUser.roles?.some((role: string) => ADMIN_ROLES.includes(role));
+
+        if (!isGlobalAdmin && adminUser.managedApplications?.length) {
+          router.replace("/admin/application-users");
+          return;
+        }
+
         const [usersRes, appsRes, rolesRes, logsRes] = await Promise.all([
           adminFetch("/api/users?pageSize=1"),
           adminFetch("/api/applications"),
@@ -82,7 +95,7 @@ export default function DashboardPage() {
       }
     }
     load();
-  }, []);
+  }, [router]);
 
   const cards = [
     { title: "用户总数", value: stats?.userCount ?? "-", icon: Users, caption: "已纳入统一身份体系", link: "/admin/users" },

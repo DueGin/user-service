@@ -1,0 +1,4 @@
+interface:
+  display_name: "User Service Integration"
+  short_description: "Guide other apps into User Service auth"
+  default_prompt: "Use $user-service-integration to add User Service login to this app."

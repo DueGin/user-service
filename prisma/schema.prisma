@@ -18,10 +18,12 @@ model User {
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 
-  userRoles UserRole[]
-  sessions  Session[]
-  authCodes AuthCode[]
-  auditLogs AuditLog[]
+  userRoles           UserRole[]
+  sessions            Session[]
+  authCodes           AuthCode[]
+  auditLogs           AuditLog[]
+  managedApplications ApplicationManager[]
+  applicationUsers    ApplicationUser[]
 
   @@map("users")
 }
@@ -76,18 +78,21 @@ model Session {
 }
 
 model Application {
-  id             String    @id @default(cuid())
-  name           String    @unique
+  id             String                @id @default(cuid())
+  name           String                @unique
   description    String?
-  apiKey         String    @unique
+  apiKey         String                @unique
   apiSecret      String
-  status         AppStatus @default(ACTIVE)
+  status         AppStatus             @default(ACTIVE)
+  accessMode     ApplicationAccessMode @default(OPEN)
   callbackUrl    String?
-  allowedOrigins String[]  @default([])
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  allowedOrigins String[]              @default([])
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
 
   authCodes AuthCode[]
+  managers  ApplicationManager[]
+  users     ApplicationUser[]
 
   @@map("applications")
 }
@@ -95,6 +100,49 @@ model Application {
 enum AppStatus {
   ACTIVE
   DISABLED
+}
+
+enum ApplicationAccessMode {
+  OPEN
+  MEMBERS_ONLY
+  ADMINS_ONLY
+}
+
+enum ApplicationUserStatus {
+  ACTIVE
+  DISABLED
+}
+
+model ApplicationManager {
+  id        String   @id @default(cuid())
+  appId     String
+  userId    String
+  createdAt DateTime @default(now())
+
+  application Application @relation(fields: [appId], references: [id], onDelete: Cascade)
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([appId, userId])
+  @@index([userId])
+  @@map("application_managers")
+}
+
+model ApplicationUser {
+  id          String                @id @default(cuid())
+  appId       String
+  userId      String
+  status      ApplicationUserStatus @default(ACTIVE)
+  lastLoginAt DateTime?
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+
+  application Application @relation(fields: [appId], references: [id], onDelete: Cascade)
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([appId, userId])
+  @@index([userId])
+  @@index([status])
+  @@map("application_users")
 }
 
 model AuthCode {

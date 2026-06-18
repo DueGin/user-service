@@ -5,6 +5,8 @@ import { exchangeCodeSchema } from "@/lib/validations";
 import { success, error, getClientIp } from "@/lib/api-response";
 import { getTraceId } from "@/lib/trace";
 import type { Prisma } from "@/generated/prisma/client";
+import { ensureApplicationAccess } from "@/lib/application-access";
+import { createAuditLog } from "@/lib/audit";
 
 export async function POST(request: NextRequest) {
   const traceId = getTraceId(request);
@@ -57,6 +59,25 @@ export async function POST(request: NextRequest) {
 
     if (!user || user.status !== "ACTIVE") {
       return error("用户不存在或已被禁用", 403);
+    }
+
+    const appAccess = await ensureApplicationAccess(appId, user.id);
+    if (!appAccess.ok) {
+      await createAuditLog({
+        userId: user.id,
+        action: "DENY_APPLICATION_EXCHANGE",
+        resource: "application_user",
+        detail: {
+          appId,
+          appName: app.name,
+          targetUserId: user.id,
+          reason: appAccess.reason,
+          result: "DENIED",
+        },
+        ip: getClientIp(request),
+        traceId,
+      }).catch(() => undefined);
+      return error(appAccess.message, appAccess.status);
     }
 
     const roles = user.userRoles.map((ur: { role: { name: string } }) => ur.role.name);

@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getCurrentUser, getTokenFromRequest } from "@/lib/session";
 import { success, error } from "@/lib/api-response";
+import { getUserAdminContext } from "@/lib/application-access";
 
 export async function GET(request: NextRequest) {
   try {
@@ -48,9 +49,14 @@ export async function GET(request: NextRequest) {
       return error("用户不存在", 404);
     }
 
+    const adminContext = await getUserAdminContext(currentUser);
+
     return success({
       ...user,
       roles: user.userRoles.map((ur: { role: { id: string; name: string; description: string | null; permissions: unknown } }) => ur.role),
+      managedApplications: adminContext.managedApplications,
+      isAdmin: adminContext.isAdmin,
+      canAccessAdmin: adminContext.canAccessAdmin,
     });
   } catch (err) {
     console.error("Get me error:", err);

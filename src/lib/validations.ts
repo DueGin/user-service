@@ -1,5 +1,11 @@
 import { z } from "zod";
 
+export const applicationAccessModes = ["OPEN", "MEMBERS_ONLY", "ADMINS_ONLY"] as const;
+
+const adminUserIdsSchema = z
+  .array(z.string().min(1))
+  .min(1, "请选择至少一个应用管理员");
+
 export const registerSchema = z.object({
   username: z
     .string()
@@ -9,11 +15,13 @@ export const registerSchema = z.object({
   password: z.string().min(6, "密码至少6个字符").max(128),
   email: z.string().email("邮箱格式不正确").optional().or(z.literal("")),
   phone: z.string().optional().or(z.literal("")),
+  appId: z.string().optional(),
 });
 
 export const loginSchema = z.object({
   account: z.string().min(1, "请输入用户名/邮箱/手机号"),
   password: z.string().min(1, "请输入密码"),
+  appId: z.string().optional(),
 });
 
 export const updateUserSchema = z.object({
@@ -47,14 +55,18 @@ export const createAppSchema = z.object({
   description: z.string().optional(),
   callbackUrl: z.string().url("回调URL格式不正确").optional().or(z.literal("")),
   allowedOrigins: z.array(z.string()).default([]),
+  accessMode: z.enum(applicationAccessModes).default("OPEN"),
+  adminUserIds: adminUserIdsSchema,
 });
 
 export const updateAppSchema = z.object({
   name: z.string().min(1).max(100).optional(),
   description: z.string().optional(),
   status: z.enum(["ACTIVE", "DISABLED"]).optional(),
+  accessMode: z.enum(applicationAccessModes).optional(),
   callbackUrl: z.string().url().optional().or(z.literal("")),
   allowedOrigins: z.array(z.string()).optional(),
+  adminUserIds: adminUserIdsSchema.optional(),
 });
 
 export const exchangeCodeSchema = z.object({

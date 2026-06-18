@@ -5,6 +5,7 @@ import { registerSchema } from "@/lib/validations";
 import { success, error, getClientIp } from "@/lib/api-response";
 import { createAuditLog } from "@/lib/audit";
 import { getTraceId } from "@/lib/trace";
+import { ensureApplicationAccess } from "@/lib/application-access";
 
 export async function POST(request: NextRequest) {
   const traceId = getTraceId(request);
@@ -16,7 +17,22 @@ export async function POST(request: NextRequest) {
       return error(parsed.error.issues[0].message);
     }
 
-    const { username, password, email, phone } = parsed.data;
+    const { username, password, email, phone, appId } = parsed.data;
+
+    if (appId) {
+      const app = await prisma.application.findUnique({
+        where: { id: appId },
+        select: { id: true, status: true, accessMode: true },
+      });
+
+      if (!app || app.status !== "ACTIVE") {
+        return error("应用不存在或已被禁用", 400);
+      }
+
+      if (app.accessMode !== "OPEN") {
+        return error("该应用不开放自助注册，请联系应用管理员", 403);
+      }
+    }
 
     const existing = await prisma.user.findFirst({
       where: {
@@ -53,11 +69,18 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    if (appId) {
+      const appAccess = await ensureApplicationAccess(appId, user.id);
+      if (!appAccess.ok) {
+        return error(appAccess.message, appAccess.status);
+      }
+    }
+
     await createAuditLog({
       userId: user.id,
       action: "REGISTER",
       resource: "user",
-      detail: { username },
+      detail: { username, appId },
       ip: getClientIp(request),
       traceId,
     });

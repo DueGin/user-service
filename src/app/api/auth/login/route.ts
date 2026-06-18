@@ -6,6 +6,10 @@ import { loginSchema } from "@/lib/validations";
 import { success, error, getClientIp } from "@/lib/api-response";
 import { createAuditLog } from "@/lib/audit";
 import { getTraceId } from "@/lib/trace";
+import {
+  ensureApplicationAccess,
+  getUserAdminContext,
+} from "@/lib/application-access";
 
 export async function POST(request: NextRequest) {
   const traceId = getTraceId(request);
@@ -17,15 +21,11 @@ export async function POST(request: NextRequest) {
       return error(parsed.error.issues[0].message);
     }
 
-    const { account, password } = parsed.data;
+    const { account, password, appId } = parsed.data;
 
     const user = await prisma.user.findFirst({
       where: {
-        OR: [
-          { username: account },
-          { email: account },
-          { phone: account },
-        ],
+        OR: [{ username: account }, { email: account }, { phone: account }],
       },
       include: {
         userRoles: {
@@ -50,6 +50,28 @@ export async function POST(request: NextRequest) {
     const roles = user.userRoles.map((ur: { role: { name: string } }) => ur.role.name);
     const payload = { userId: user.id, username: user.username, roles };
 
+    if (appId) {
+      const appAccess = await ensureApplicationAccess(appId, user.id);
+      if (!appAccess.ok) {
+        await createAuditLog({
+          userId: user.id,
+          action: "DENY_APPLICATION_LOGIN",
+          resource: "application_user",
+          detail: {
+            appId,
+            targetUserId: user.id,
+            reason: appAccess.reason,
+            result: "DENIED",
+          },
+          ip: getClientIp(request),
+          traceId,
+        }).catch(() => undefined);
+        return error(appAccess.message, appAccess.status);
+      }
+    }
+
+    const adminContext = await getUserAdminContext(payload);
+
     const accessToken = signAccessToken(payload);
     const refreshToken = signRefreshToken(payload);
 
@@ -68,7 +90,7 @@ export async function POST(request: NextRequest) {
       userId: user.id,
       action: "LOGIN",
       resource: "session",
-      detail: { sessionId: session.id },
+      detail: { sessionId: session.id, appId },
       ip: getClientIp(request),
       traceId,
     });
@@ -83,6 +105,8 @@ export async function POST(request: NextRequest) {
         phone: user.phone,
         avatar: user.avatar,
         roles,
+        managedApplications: adminContext.managedApplications,
+        isAdmin: adminContext.isAdmin,
       },
     });
   } catch (err) {

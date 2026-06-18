@@ -105,6 +105,7 @@ function RegisterContent() {
         onError={handleError}
         switchUrl={buildSwitchUrl()}
         appName={appName || undefined}
+        appId={appId || undefined}
       />
       {authorizationError ? (
         <div className="fixed bottom-4 left-1/2 z-20 w-[min(92vw,520px)] -translate-x-1/2 rounded-xl border border-red-300/30 bg-red-950/85 px-4 py-3 text-sm leading-6 text-red-100 shadow-2xl backdrop-blur">

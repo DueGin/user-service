@@ -1,6 +1,6 @@
 # User Service — 用户基础服务
 
-基于 Next.js 15 + PostgreSQL + Prisma 构建的用户管理系统。提供用户注册/登录、角色权限、应用接入（API Key）、操作审计等能力，并为第三方应用提供公开的登录/注册页面。
+基于 Next.js + PostgreSQL + Prisma 构建的统一账号与 SSO 服务。提供用户注册/登录、角色权限、应用接入（API Key）、应用管理员指派、应用成员管理、操作审计等能力，并为其他自有应用提供公开的登录/注册页面。
 
 ## 快速开始
 
@@ -43,7 +43,8 @@ npm run dev
 
 | 模块 | 路径 | 说明 |
 |------|------|------|
-| 管理后台 | `/admin` | 用户/角色/应用/日志管理 |
+| 管理后台 | `/admin` | 统一账号、角色、应用接入、审计管理 |
+| 应用用户管理 | `/admin/application-users` | 应用管理员管理自己应用下的成员关系 |
 | 公开登录页 | `/auth/login` | 第三方应用可用 |
 | 公开注册页 | `/auth/register` | 第三方应用可用 |
 | REST API | `/api/*` | 所有后端接口 |
@@ -95,6 +96,18 @@ npm run dev
 | PUT | `/api/applications/:id` | 更新应用 |
 | DELETE | `/api/applications/:id` | 禁用应用 |
 | POST | `/api/applications/:id/regenerate-key` | 重新生成密钥 |
+| GET | `/api/applications/:id/managers` | 获取应用管理员 |
+| POST | `/api/applications/:id/managers` | 指派应用管理员 |
+
+### 应用成员管理（需应用管理员）
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | `/api/application-users` | 当前应用管理员可管理的应用成员列表 |
+| POST | `/api/application-users` | 将已有统一账号关联为应用成员 |
+| PUT | `/api/application-users/:id` | 启用或禁用应用成员 |
+| DELETE | `/api/application-users/:id` | 禁用应用成员 |
+| GET | `/api/application-users/eligible-users` | 搜索可关联的已有统一账号 |
 
 ### 审计日志（需登录）
 
@@ -108,8 +121,19 @@ npm run dev
 
 ### 前置条件
 
-1. 在管理后台「应用管理」中创建应用，获取 `appId`、`apiKey`、`apiSecret`
-2. 配置好回调 URL（`callbackUrl`）和允许的域名（`allowedOrigins`）
+1. 在管理后台「应用管理」中创建应用，并从已有统一账号中选择一个或多个应用管理员，同时配置访问模式
+2. 获取 `appId`、`apiKey`、`apiSecret`
+3. 配置好回调 URL（`callbackUrl`）和允许的域名（`allowedOrigins`）
+
+### 账号与应用成员关系
+
+- 统一账号是全局身份，一个用户可以同时属于多个接入应用。
+- 应用成员关系按 `appId + userId` 独立记录，应用 A 禁用用户不会影响应用 B。
+- `OPEN` 模式下，用户首次通过某个应用登录或授权时，如果没有成员关系，会自动创建该应用下的 `ACTIVE` 成员关系。
+- `MEMBERS_ONLY` 模式只允许已有 `ACTIVE` 应用成员登录。
+- `ADMINS_ONLY` 模式只允许该应用的应用管理员登录。
+- 如果用户已经在某个应用中被禁用，后续登录或授权不会自动重新启用，必须由该应用管理员手动启用。
+- 应用管理员只能关联已有统一账号为应用成员，不能创建全局账号、管理全局角色或修改应用密钥。
 
 ### 模式 A：重定向模式（推荐）
 

@@ -17,9 +17,10 @@ export interface AuthFormProps {
   onError?: (message: string) => void;
   switchUrl?: string;
   appName?: string;
+  appId?: string;
 }
 
-export function AuthForm({ mode, onSuccess, onError, switchUrl, appName }: AuthFormProps) {
+export function AuthForm({ mode, onSuccess, onError, switchUrl, appName, appId }: AuthFormProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -46,8 +47,8 @@ export function AuthForm({ mode, onSuccess, onError, switchUrl, appName }: AuthF
       const url = mode === "login" ? "/api/auth/login" : "/api/auth/register";
       const body =
         mode === "login"
-          ? { account, password }
-          : { username, password, email: email || undefined };
+          ? { account, password, appId: appId || undefined }
+          : { username, password, email: email || undefined, appId: appId || undefined };
 
       const res = await fetch(url, {
         method: "POST",
@@ -69,7 +70,7 @@ export function AuthForm({ mode, onSuccess, onError, switchUrl, appName }: AuthF
         const loginRes = await fetch("/api/auth/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ account: username, password }),
+          body: JSON.stringify({ account: username, password, appId: appId || undefined }),
         });
         const loginData = await loginRes.json();
         if (loginData.success) {

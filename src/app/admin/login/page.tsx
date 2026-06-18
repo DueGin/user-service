@@ -39,13 +39,15 @@ export default function AdminLoginPage() {
       const ADMIN_ROLES = ["超级管理员", "admin", "管理员"];
       const userRoles: string[] = data.data.user?.roles || [];
       const hasAdminRole = userRoles.some((r: string) => ADMIN_ROLES.includes(r));
-      if (!hasAdminRole) {
+      const managedApplications: Array<{ id: string; name: string }> =
+        data.data.user?.managedApplications || [];
+      if (!hasAdminRole && managedApplications.length === 0) {
         // Logout the session since non-admin should not stay logged in to admin
         await fetch("/api/auth/logout", {
           method: "POST",
           headers: { Authorization: `Bearer ${data.data.accessToken}` },
         });
-        setError("权限不足，仅管理员可登录后台");
+        setError("权限不足，仅管理员或应用管理者可登录后台");
         return;
       }
 
@@ -53,7 +55,7 @@ export default function AdminLoginPage() {
       document.cookie = `admin_refresh_token=${data.data.refreshToken}; path=/; max-age=${60 * 60 * 24 * 7}`;
       localStorage.setItem("admin_user", JSON.stringify(data.data.user));
 
-      router.push("/admin");
+      router.push(hasAdminRole ? "/admin" : "/admin/application-users");
     } catch {
       setError("网络错误，请稍后重试");
     } finally {

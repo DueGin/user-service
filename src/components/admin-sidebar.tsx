@@ -20,6 +20,7 @@ import {
   Users,
   ShieldCheck,
   AppWindow,
+  UserCog,
   ScrollText,
   BookOpenText,
   LogOut,
@@ -29,12 +30,13 @@ import {
 } from "lucide-react";
 
 const navItems = [
-  { href: "/admin", label: "仪表盘", description: "服务概览", icon: LayoutDashboard },
-  { href: "/admin/users", label: "用户管理", description: "账号与状态", icon: Users },
-  { href: "/admin/roles", label: "角色管理", description: "权限配置", icon: ShieldCheck },
-  { href: "/admin/applications", label: "应用管理", description: "密钥与回调", icon: AppWindow },
-  { href: "/admin/integration-docs", label: "接入文档", description: "登录与授权", icon: BookOpenText },
-  { href: "/admin/audit-logs", label: "操作日志", description: "审计追踪", icon: ScrollText },
+  { href: "/admin", label: "仪表盘", description: "服务概览", icon: LayoutDashboard, adminOnly: true },
+  { href: "/admin/users", label: "用户管理", description: "账号与状态", icon: Users, adminOnly: true },
+  { href: "/admin/application-users", label: "应用用户", description: "应用内成员", icon: UserCog, appAdminOnly: true },
+  { href: "/admin/roles", label: "角色管理", description: "权限配置", icon: ShieldCheck, adminOnly: true },
+  { href: "/admin/applications", label: "应用管理", description: "密钥与回调", icon: AppWindow, adminOnly: true },
+  { href: "/admin/integration-docs", label: "接入文档", description: "登录与授权", icon: BookOpenText, adminOnly: true },
+  { href: "/admin/audit-logs", label: "操作日志", description: "审计追踪", icon: ScrollText, adminOnly: true },
 ];
 
 export function AdminSidebar() {
@@ -61,7 +63,12 @@ export function AdminSidebar() {
     router.push("/admin/login");
   }
 
-  const [adminUser, setAdminUser] = useState<{ username?: string; roles?: string[] }>({});
+  const [adminUser, setAdminUser] = useState<{
+    username?: string;
+    roles?: string[];
+    isAdmin?: boolean;
+    managedApplications?: Array<{ id: string; name: string }>;
+  }>({});
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -95,6 +102,23 @@ export function AdminSidebar() {
 
     button.style.setProperty("--admin-sidebar-toggle-y", `${y}px`);
   }
+
+  const ADMIN_ROLES = ["超级管理员", "admin", "管理员"];
+  const isGlobalAdmin =
+    adminUser.isAdmin ||
+    adminUser.roles?.some((role) => ADMIN_ROLES.includes(role)) ||
+    false;
+  const hasManagedApplications = Boolean(adminUser.managedApplications?.length);
+  const roleLabel = adminUser.roles?.length
+    ? adminUser.roles.join(", ")
+    : hasManagedApplications
+      ? "应用管理员"
+      : "管理员";
+  const visibleNavItems = navItems.filter((item) => {
+    if (item.adminOnly) return isGlobalAdmin;
+    if (item.appAdminOnly) return hasManagedApplications && !isGlobalAdmin;
+    return true;
+  });
 
   return (
     <aside
@@ -136,7 +160,7 @@ export function AdminSidebar() {
         <p className={cn("hidden px-3 pb-2 text-xs font-medium text-slate-500 lg:block", isCollapsed && "lg:hidden")}>
           工作区
         </p>
-        {navItems.map((item) => {
+        {visibleNavItems.map((item) => {
           const isActive =
             item.href === "/admin"
               ? pathname === "/admin"
@@ -194,7 +218,7 @@ export function AdminSidebar() {
                 {adminUser.username || "Admin"}
               </p>
               <p className="truncate text-xs text-slate-500">
-                {adminUser.roles?.length ? adminUser.roles.join(", ") : "管理员"}
+                {roleLabel}
               </p>
             </div>
           </DropdownMenuTrigger>
@@ -215,7 +239,7 @@ export function AdminSidebar() {
                       {adminUser.username || "Admin"}
                     </p>
                     <p className="truncate text-xs font-normal text-slate-500">
-                      {adminUser.roles?.length ? adminUser.roles.join(", ") : "管理员"}
+                      {roleLabel}
                     </p>
                   </div>
                 </div>
